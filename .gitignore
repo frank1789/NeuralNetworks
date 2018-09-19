@@ -153,3 +153,9 @@ Temporary Items
 pyvenv.cfg
 .venv
 pip-selfcheck.json
+
+\.idea/
+
+User_Data/
+
+logininformation\.json
