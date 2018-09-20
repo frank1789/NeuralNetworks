@@ -5,9 +5,8 @@ import numpy as np
 
 
 class PreparePicture(object):
-    """
-
-
+    """Class to handle and edit images in the data set and configure according to the labels returns the number of
+    classes you want to classify
     """
     _X_train = None
     _y_train = None
@@ -16,8 +15,8 @@ class PreparePicture(object):
     def __init__(self, input_dataset, input_labels, image_width=299, image_height=299):
         """Default constructor, pass in argument the file's data-set and previous label-set, then set (optionally) the
         dimension of image the default factor is square (299, 299)
-        :param dataset (list) data-set
-        :param labels (dict) labels of data-set from subfolder
+        :param input_dataset (list) data-set
+        :param input_labels (dict) labels of data-set from subfolder
         :param image_width (int)  specify width dimension
         :param image_height (int) specify height dimension
         """
@@ -73,7 +72,7 @@ if __name__ == '__main__':
     img_data, labels = dataset.get_dataset()
     sublables = {k: v for k, v in labels.items() if k in range(0, 4, 1)}
     print(labels.items())
-    img = PreparePicture(img_data, sublables, 64, 64)
+    img = PreparePicture(img_data, sublables, 32, 32)
     img.prepare_pictures()
     num_classes = img.get_num_class()
 
