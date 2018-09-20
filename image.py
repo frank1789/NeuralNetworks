@@ -9,12 +9,11 @@ class PreparePicture(object):
 
 
     """
-    _X = None
-    _y = None
+    _X_train = None
+    _y_train = None
     _normalize = 255.0
 
-
-    def __init__(self, dataset, labels, image_width=299, image_height=299):
+    def __init__(self, input_dataset, input_labels, image_width=299, image_height=299):
         """Default constructor, pass in argument the file's data-set and previous label-set, then set (optionally) the
         dimension of image the default factor is square (299, 299)
         :param dataset (list) data-set
@@ -22,39 +21,46 @@ class PreparePicture(object):
         :param image_width (int)  specify width dimension
         :param image_height (int) specify height dimension
         """
-        self._dataset = dataset
+        self._dataset = input_dataset
         self._image_width, self._image_height = image_width, image_height
         if type(labels) is dict:
-            self._labels = labels
-            self._num_label = len(labels)
+            self._labels = input_labels
+            self._num_label = len(input_labels)
         else:
             assert "Wrong Type of the second parameter, it must be a dict"
 
     def prepare_pictures(self):
         """
         Load pictures from folders for characters from the map_characters dict and create a numpy data-set and
-        a numpy labels set. Pictures are re-sized into picture_size square.
-        :return: (numpy-array) data-set, labels-set
+        a numpy labels set. Pictures are re-sized into picture_size defined in constructor.
         """
-        pics = []
-        labels = []
-        #print(self._labels)
+        pics_ = []
+        labels_ = []
         for i, pict_labels in self._labels.items():
+            # filter image not in labels, then it's possible use a restricted data-set
             images = [select for select in self._dataset if pict_labels in select]
             for img in images:
                 tmp_img = cv2.imread(img)
                 tmp_img = cv2.resize(tmp_img, (self._image_width, self._image_height))
-                pics.append(tmp_img)
-                labels.append(i)
-
-        # store array image and labels not normalize
-        self._X, self._y = np.array(pics), np.array(labels, dtype='int64')
+                pics_.append(tmp_img)
+                labels_.append(i)
+        X = np.array(pics_)  # array image as numpy-array
+        y = np.array(labels_, dtype='int64')  # array labels as numpy-array
         # normalize value with 255
-        X_Train = self._X.astype('float32') / self._normalize
-        y_train = keras.utils.to_categorical(self._y, self._num_label)
+        self._X_train = X.astype('float32') / self._normalize
+        self._y_train = keras.utils.to_categorical(y, self._num_label)
 
+    def get_image(self):
+        """ Return entire data_set and label data-set as numpy-array normalized.
+        :return: (numpy-array) data-set, labels-set
+        """
         # return np.array(pics), np.array(labels)
-        return X_Train, y_train
+        return self._X_train, self._y_train
+
+    def get_num_class(self):
+        """Return number of class analyzed from label data-set.
+        :return (int) number of class"""
+        return self._num_label
 
 
 if __name__ == '__main__':
@@ -67,6 +73,8 @@ if __name__ == '__main__':
     img_data, labels = dataset.get_dataset()
     sublables = {k: v for k, v in labels.items() if k in range(0, 4, 1)}
     print(labels.items())
-    img = PreparePicture(img_data, sublables)
+    img = PreparePicture(img_data, sublables, 64, 64)
+    img.prepare_pictures()
+    num_classes = img.get_num_class()
 
-    X_train, y_train = img.prepare_pictures()
+    X, y = img.get_image()
