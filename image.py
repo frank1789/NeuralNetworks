@@ -25,7 +25,7 @@ class PreparePicture(object):
         """
         self._dataset = input_dataset
         self._image_width, self._image_height = image_width, image_height
-        if type(labels) is dict:
+        if type(input_labels) is dict:
             self._labels = input_labels
             self._num_label = len(input_labels)
         else:
