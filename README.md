@@ -1,5 +1,5 @@
 [![License:MIT](https://img.shields.io/packagist/l/doctrine/orm.svg)](License.md)
-[![Python](https://img.shields.io/badge/Python-3.5-orange.svg)]
+![Python](https://img.shields.io/badge/Python-3.5-orange.svg)
 # Neural Network
 
 ## Embedded System Project
