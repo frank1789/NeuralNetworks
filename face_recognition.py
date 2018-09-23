@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
-from keras.models import Sequential, model_from_json
+from keras.models import Sequential, model_from_json, load_model
 from keras.layers import Dropout, Flatten, Dense
 from keras.optimizers import SGD
 from keras.layers.convolutional import ZeroPadding2D
@@ -12,6 +12,7 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.utils import plot_model
 from keras import backend as kbe
 import numpy as np
+import h5py
 
 # suppress warning and error message tf
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -30,7 +31,7 @@ class FaceRecognition(object):
     m_num_classes = 0
     m_num_validate_samples = 0
 
-    def __init__(self, epochs, batch_size, image_width=224, image_height=244):
+    def __init__(self, epochs, batch_size, image_width=224, image_height=224):
         self.m_epochs = epochs
         self.m_batch_size = batch_size
         self.m_image_width = image_width
@@ -107,7 +108,7 @@ class FaceRecognition(object):
             seed=42
         )
 
-    def tain_and_fit_model(self):
+    def train_and_fit_model(self):
         """Train the model"""
         # Compile Neural Network
         self.face_recognition_model()
@@ -135,13 +136,13 @@ class FaceRecognition(object):
 
     def input_model(self, model_file):
         if os.path.exists(model_file):
-            self.m_model = model_file
+            self.m_model = load_model(model_file)
 
     def input_json_weights(self, json_file, weights_file):
         if os.path.exists(json_file) and os.path.exists(weights_file):
             # Model reconstruction from JSON file
             with open(json_file, 'r') as f:
-                self.m_modelmodel = model_from_json(f.read())
+                self.m_model = model_from_json(f.read())
 
             # Load weights into the new model
             self.m_model.load_weights(weights_file)
@@ -154,7 +155,7 @@ class FaceRecognition(object):
         with open(path + namefile + ".json", "w") as json_file:
             json_file.write(model_json)
         # save weights
-        self.m_model.save_weights(path + namefile + '.h5')
+        self.m_model.save_weights(path + namefile + '_weights.h5')
 
     def save_model(self):
         self.m_model.save("./model/facerecognition.h5")
@@ -229,7 +230,8 @@ if __name__ == '__main__':
         validate_folder=r'/Users/francesco/Downloads/the-simpsons-characters-dataset/simpsons_dataset')
     test.set_test_generator(
         test_folder=r'/Users/francesco/Downloads/the-simpsons-characters-dataset/kaggle_simpson_testset')
-    test.tain_and_fit_model()
+    #test.input_model(r'/Users/francesco/Downloads/the-simpsons-characters-dataset/weights.best.hdf5')
+    test.train_and_fit_model()
     test.predict_class_indices()
     test.predict_output()
     test.save_model()
