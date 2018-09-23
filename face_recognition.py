@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
-from keras.models import Sequential
+from keras.models import Sequential, model_from_json
 from keras.layers import Dropout, Flatten, Dense
 from keras.optimizers import SGD
 from keras.layers.convolutional import ZeroPadding2D
@@ -15,7 +15,7 @@ import numpy as np
 
 # suppress warning and error message tf
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-
+# specify input shape
 kbe.set_image_dim_ordering('th')
 
 
@@ -39,7 +39,7 @@ class FaceRecognition(object):
         self.m_model = Sequential()
 
     @staticmethod
-    # Get count of number of files in this folder and all subfolders
+    # Get count of number of files in this folder and all sub-folders
     def get_num_files(path):
         if not os.path.exists(path):
             return 0
@@ -129,14 +129,26 @@ class FaceRecognition(object):
 
     def predict_class_indices(self):
         predicted_class_indices = np.argmax(self.m_pred, axis=1)
-        labels = self.m_num_classes
+        labels = self.m_train_generator.class_indices
         self.m_labels = dict((v, k) for k, v in labels.items())
         self.m_predictions = [labels[k] for k in predicted_class_indices]
 
-    def save_json_weigth(self, path="./model/", namefile="facerec"):
+    def input_model(self, model_file):
+        if os.path.exists(model_file):
+            self.m_model = model_file
+
+    def input_json_weights(self, json_file, weights_file):
+        if os.path.exists(json_file) and os.path.exists(weights_file):
+            # Model reconstruction from JSON file
+            with open(json_file, 'r') as f:
+                self.m_modelmodel = model_from_json(f.read())
+
+            # Load weights into the new model
+            self.m_model.load_weights(weights_file)
+
+    def save_json_weights(self, path="./model/", namefile="facerec"):
         # print the scheme model
         plot_model(self.m_model, to_file='model.png')
-
         # save as JSON
         model_json = self.m_model.to_json()
         with open(path + namefile + ".json", "w") as json_file:
@@ -145,7 +157,7 @@ class FaceRecognition(object):
         self.m_model.save_weights(path + namefile + '.h5')
 
     def save_model(self):
-        self.m_model.save("./model/facerecognition.model")
+        self.m_model.save("./model/facerecognition.h5")
         # print the scheme model
         plot_model(self.m_model, to_file='model.png')
 
@@ -205,6 +217,10 @@ class FaceRecognition(object):
 
 
 if __name__ == '__main__':
+    from tensorflow.python.client import device_lib
+
+    kbe.tensorflow_backend._get_available_gpus()
+    print(device_lib.list_local_devices())
     test = FaceRecognition(epochs=10, batch_size=32)
     test.create_img_generator()
     test.set_train_generator(
@@ -214,4 +230,7 @@ if __name__ == '__main__':
     test.set_test_generator(
         test_folder=r'/Users/francesco/Downloads/the-simpsons-characters-dataset/kaggle_simpson_testset')
     test.tain_and_fit_model()
+    test.predict_class_indices()
+    test.predict_output()
+    test.save_model()
     quit(0)
