@@ -159,3 +159,5 @@ pip-selfcheck.json
 User_Data/
 
 logininformation\.json
+
+dataset/
