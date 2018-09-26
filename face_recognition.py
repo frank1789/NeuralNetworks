@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import os
-from keras.models import Sequential, model_from_json, load_model
-from keras.layers import Dropout, Flatten, Dense
+from keras.models import Model, model_from_json, load_model
+from keras.layers import Dropout, Flatten, Dense, Input
 from keras.optimizers import SGD
 from keras.layers.convolutional import ZeroPadding2D
 from keras.layers import MaxPooling2D, Convolution2D, Activation
@@ -30,14 +30,13 @@ class FaceRecognition(object):
     m_num_train_samples = 0
     m_num_classes = 0
     m_num_validate_samples = 0
+    m_model = None
 
     def __init__(self, epochs, batch_size, image_width=224, image_height=224):
         self.m_epochs = epochs
         self.m_batch_size = batch_size
         self.m_image_width = image_width
         self.m_image_height = image_height
-        # instance neural network model sequential
-        self.m_model = Sequential()
 
     @staticmethod
     # Get count of number of files in this folder and all sub-folders
@@ -164,73 +163,80 @@ class FaceRecognition(object):
 
     def face_recognition_model(self):
         """Model face recognition based on model VGG16 Oxford University."""
-        self.m_model.add(ZeroPadding2D((1, 1), input_shape=(3, self.m_image_width, self.m_image_height)))
-        self.m_model.add(Convolution2D(64, (3, 3), activation='relu', padding='same'))
-        self.m_model.add(ZeroPadding2D((1, 1)))
-        self.m_model.add(Convolution2D(64, (3, 3), activation='relu'))
-        self.m_model.add(MaxPooling2D((2, 2), data_format="channels_first", strides=(2, 2)))
+        # define input model block
+        x_input = Input((3, self.m_image_width, self.m_image_height))
+        x = (ZeroPadding2D((1, 1)))(x_input)
+        # block 1
+        x = (Convolution2D(64, (3, 3), activation='relu', padding="same", name="block1_conv1"))(x)
+        x = (ZeroPadding2D((1, 1)))(x)
+        x = (Convolution2D(64, (3, 3), activation='relu', padding="same", name="block1_conv2"))(x)
+        x = (MaxPooling2D((2, 2), data_format="channels_first", strides=(2, 2)))(x)
+        # block 2
+        x = (ZeroPadding2D((1, 1)))(x)
+        x = (Convolution2D(128, (3, 3), activation='relu', padding="same", name="block2_conv1"))(x)
+        x = (ZeroPadding2D((1, 1)))(x)
+        x = (Convolution2D(128, (3, 3), activation='relu', padding="same", name="block2_conv2"))(x)
+        x = (MaxPooling2D((2, 2), data_format="channels_first", strides=(2, 2)))(x)
+        # block 3
+        x = (ZeroPadding2D((1, 1)))(x)
+        x = (Convolution2D(256, (3, 3), activation='relu', padding="same", name="block3_conv1"))(x)
+        x = (ZeroPadding2D((1, 1)))(x)
+        x = (Convolution2D(256, (3, 3), activation='relu', padding="same", name="block3_conv2"))(x)
+        x = (ZeroPadding2D((1, 1)))(x)
+        x = (Convolution2D(256, (3, 3), activation='relu', padding="same", name="block3_conv3"))(x)
+        x = (MaxPooling2D((2, 2), data_format="channels_first", strides=(2, 2)))(x)
+        # block 4
+        x = (ZeroPadding2D((1, 1)))(x)
+        x = (Convolution2D(512, (3, 3), activation='relu', padding="same", name="block4_conv1"))(x)
+        x = (ZeroPadding2D((1, 1)))(x)
+        x = (Convolution2D(512, (3, 3), activation='relu', padding="same", name="block4_conv2"))(x)
+        x = (ZeroPadding2D((1, 1)))(x)
+        x = (Convolution2D(512, (3, 3), activation='relu', padding="same", name="block4_conv3"))(x)
+        x = (MaxPooling2D((2, 2), data_format="channels_first", strides=(2, 2)))(x)
+        # block 5
+        x = (ZeroPadding2D((1, 1)))(x)
+        x = (Convolution2D(512, (3, 3), activation='relu', padding="same", name="block5_conv1"))(x)
+        x = (ZeroPadding2D((1, 1)))(x)
+        x = (Convolution2D(512, (3, 3), activation='relu', padding="same", name="block5_conv2"))(x)
+        x = (ZeroPadding2D((1, 1)))(x)
+        x = (Convolution2D(512, (3, 3), activation='relu', padding="same", name="block5_conv3"))(x)
+        x = (MaxPooling2D((2, 2), data_format="channels_first", strides=(2, 2)))(x)
 
-        self.m_model.add(ZeroPadding2D((1, 1)))
-        self.m_model.add(Convolution2D(128, (3, 3), activation='relu', padding="same"))
-        self.m_model.add(ZeroPadding2D((1, 1)))
-        self.m_model.add(Convolution2D(128, (3, 3), activation='relu', padding="same"))
-        self.m_model.add(MaxPooling2D((2, 2), data_format="channels_first", strides=(2, 2)))
+        # classification block
+        x = (Convolution2D(4096, (7, 7), activation='relu', name="fc1"))(x)
+        x = (Dropout(0.5))(x)
+        x = (Convolution2D(4096, (1, 1), activation='relu', name="fc2"))(x)
+        x = (Dropout(0.5))(x)
+        x = (Convolution2D(2622, (1, 1)))(x)
+        x = (Flatten())(x)
+        x = (Activation('softmax'))(x)
 
-        self.m_model.add(ZeroPadding2D((1, 1)))
-        self.m_model.add(Convolution2D(256, (3, 3), activation='relu'))
-        self.m_model.add(ZeroPadding2D((1, 1)))
-        self.m_model.add(Convolution2D(256, (3, 3), activation='relu'))
-        self.m_model.add(ZeroPadding2D((1, 1)))
-        self.m_model.add(Convolution2D(256, (3, 3), activation='relu'))
-        self.m_model.add(MaxPooling2D((2, 2), data_format="channels_first", strides=(2, 2)))
+        predictions = (Dense(self.m_num_classes, activation='softmax', name="predictions"))(x)
 
-        self.m_model.add(ZeroPadding2D((1, 1)))
-        self.m_model.add(Convolution2D(512, (3, 3), activation='relu'))
-        self.m_model.add(ZeroPadding2D((1, 1)))
-        self.m_model.add(Convolution2D(512, (3, 3), activation='relu'))
-        self.m_model.add(ZeroPadding2D((1, 1)))
-        self.m_model.add(Convolution2D(512, (3, 3), activation='relu'))
-        self.m_model.add(MaxPooling2D((2, 2), data_format="channels_first", strides=(2, 2)))
-
-        self.m_model.add(ZeroPadding2D((1, 1)))
-        self.m_model.add(Convolution2D(512, (3, 3), activation='relu'))
-        self.m_model.add(ZeroPadding2D((1, 1)))
-        self.m_model.add(Convolution2D(512, (3, 3), activation='relu'))
-        self.m_model.add(ZeroPadding2D((1, 1)))
-        self.m_model.add(Convolution2D(512, (3, 3), activation='relu'))
-        self.m_model.add(MaxPooling2D((2, 2), data_format="channels_first", strides=(2, 2)))
-
-        self.m_model.add(Convolution2D(4096, (7, 7), activation='relu'))
-        self.m_model.add(Dropout(0.5))
-        self.m_model.add(Convolution2D(4096, (1, 1), activation='relu'))
-        self.m_model.add(Dropout(0.5))
-        self.m_model.add(Convolution2D(2622, (1, 1)))
-        self.m_model.add(Flatten())
-        self.m_model.add(Activation('softmax'))
-        self.m_model.add(Dense(self.m_num_classes, activation='softmax'))
-
-        # print model structure diagram
-        print(self.m_model.summary())
-
+        # create model instance
+        self.m_model = Model(inputs=x_input, output=predictions, name="FaceRecognitionModelVGG16")
         # compile the  model
         self.m_model.compile(optimizer=SGD(lr=0.0001, momentum=0.9),
                              loss='categorical_crossentropy', metrics=['accuracy'])
 
+        # print model structure diagram
+        print(self.m_model.summary())
+
 
 if __name__ == '__main__':
-    from tensorflow.python.client import device_lib
+    # from tensorflow.python.client import device_lib
 
-    kbe.tensorflow_backend._get_available_gpus()
-    print(device_lib.list_local_devices())
-    test = FaceRecognition(epochs=10, batch_size=32)
+    # kbe.tensorflow_backend._get_available_gpus()
+    # print(device_lib.list_local_devices())
+    test = FaceRecognition(epochs=1, batch_size=32, image_width=48, image_height=48)
     test.create_img_generator()
     test.set_train_generator(
-        train_folder=r'/Users/francesco/Downloads/the-simpsons-characters-dataset/simpsons_dataset')
+        train_folder=r'./dataset/simpsons_dataset')
     test.set_valid_generator(
-        validate_folder=r'/Users/francesco/Downloads/the-simpsons-characters-dataset/simpsons_dataset')
+        validate_folder=r'./dataset/simpsons_dataset')
     test.set_test_generator(
-        test_folder=r'/Users/francesco/Downloads/the-simpsons-characters-dataset/kaggle_simpson_testset')
-    #test.input_model(r'/Users/francesco/Downloads/the-simpsons-characters-dataset/weights.best.hdf5')
+        test_folder=r'./dataset/kaggle_simpson_testset')
+    # test.input_model(r'/Users/francesco/Downloads/the-simpsons-characters-dataset/weights.best.hdf5')
     test.train_and_fit_model()
     test.predict_class_indices()
     test.predict_output()
