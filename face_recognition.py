@@ -6,7 +6,8 @@ from keras.models import Model, model_from_json, load_model
 from keras.layers import Dropout, Flatten, Dense, Input
 from keras.optimizers import SGD
 from keras.layers.convolutional import ZeroPadding2D
-from keras.layers import MaxPooling2D, Convolution2D, Activation
+from keras.layers import MaxPooling2D, Convolution2D, Activation, Concatenate
+from keras.applications import VGG16, VGG19, InceptionV3, Xception, ResNet50
 from keras.applications.imagenet_utils import preprocess_input
 from keras.preprocessing.image import ImageDataGenerator
 from keras.utils import plot_model
@@ -107,10 +108,10 @@ class FaceRecognition(object):
             seed=42
         )
 
-    def train_and_fit_model(self):
+    def train_and_fit_model(self, pretrained_model):
         """Train the model"""
         # Compile Neural Network
-        self.face_recognition_model()
+        self.face_recognition_model(pretrained_model)
         # Fit
         STEP_SIZE_TRAIN = self.m_num_train_samples // self.m_batch_size
         STEP_SIZE_VALID = self.m_num_validate_samples // self.m_batch_size
@@ -169,48 +170,80 @@ class FaceRecognition(object):
         # print the scheme model
         plot_model(self.m_model, to_file='model.png')
 
-    def face_recognition_model(self):
+    def get_pretrained_model(self, pretrained_model):
+        input_shape = (3, self.m_image_width, self.m_image_height)
+        if pretrained_model == 'inception':
+            model_base = InceptionV3(include_top=False, input_shape=input_shape, weights='imagenet')
+            output = Flatten()(model_base.output)
+        elif pretrained_model == 'xception':
+            model_base = Xception(include_top=False, input_shape=input_shape, weights='imagenet')
+            output = Flatten()(model_base.output)
+        elif pretrained_model == 'resnet50':
+            model_base = ResNet50(include_top=False, input_shape=input_shape, weights='imagenet')
+            output = Flatten()(model_base.output)
+        elif pretrained_model == 'vgg16':
+            model_base = VGG16(include_top=False, input_shape=input_shape, weights='imagenet')
+            output = model_base.output
+        elif pretrained_model == 'vgg19':
+            model_base = VGG19(include_top=False, input_shape=input_shape, weights='imagenet')
+            output = model_base.output
+        elif pretrained_model == 'all':
+            input = Input(shape=input_shape)
+            inception_model = InceptionV3(include_top=False, input_tensor=input, weights='imagenet')
+            xception_model = Xception(include_top=False, input_tensor=input, weights='imagenet')
+            resnet_model = ResNet50(include_top=False, input_tensor=input, weights='imagenet')
+
+            flattened_outputs = [Flatten()(inception_model.output),
+                                 Flatten()(xception_model.output),
+                                 Flatten()(resnet_model.output)]
+            output = Concatenate()(flattened_outputs)
+            model_base = Model(input, output)
+        return model_base, output
+
+    def face_recognition_model(self, pretrained_model):
         """Model face recognition based on model VGG16 Oxford University."""
         # define input model block
-        x_input = Input((3, self.m_image_width, self.m_image_height))
-        x = (ZeroPadding2D((1, 1)))(x_input)
-        # block 1
-        x = (Convolution2D(64, (3, 3), activation='relu', padding="same", name="block1_conv1"))(x)
-        x = (ZeroPadding2D((1, 1)))(x)
-        x = (Convolution2D(64, (3, 3), activation='relu', padding="same", name="block1_conv2"))(x)
-        x = (MaxPooling2D((2, 2), data_format="channels_first", strides=(2, 2)))(x)
-        # block 2
-        x = (ZeroPadding2D((1, 1)))(x)
-        x = (Convolution2D(128, (3, 3), activation='relu', padding="same", name="block2_conv1"))(x)
-        x = (ZeroPadding2D((1, 1)))(x)
-        x = (Convolution2D(128, (3, 3), activation='relu', padding="same", name="block2_conv2"))(x)
-        x = (MaxPooling2D((2, 2), data_format="channels_first", strides=(2, 2)))(x)
-        # block 3
-        x = (ZeroPadding2D((1, 1)))(x)
-        x = (Convolution2D(256, (3, 3), activation='relu', padding="same", name="block3_conv1"))(x)
-        x = (ZeroPadding2D((1, 1)))(x)
-        x = (Convolution2D(256, (3, 3), activation='relu', padding="same", name="block3_conv2"))(x)
-        x = (ZeroPadding2D((1, 1)))(x)
-        x = (Convolution2D(256, (3, 3), activation='relu', padding="same", name="block3_conv3"))(x)
-        x = (MaxPooling2D((2, 2), data_format="channels_first", strides=(2, 2)))(x)
-        # block 4
-        x = (ZeroPadding2D((1, 1)))(x)
-        x = (Convolution2D(512, (3, 3), activation='relu', padding="same", name="block4_conv1"))(x)
-        x = (ZeroPadding2D((1, 1)))(x)
-        x = (Convolution2D(512, (3, 3), activation='relu', padding="same", name="block4_conv2"))(x)
-        x = (ZeroPadding2D((1, 1)))(x)
-        x = (Convolution2D(512, (3, 3), activation='relu', padding="same", name="block4_conv3"))(x)
-        x = (MaxPooling2D((2, 2), data_format="channels_first", strides=(2, 2)))(x)
-        # block 5
-        x = (ZeroPadding2D((1, 1)))(x)
-        x = (Convolution2D(512, (3, 3), activation='relu', padding="same", name="block5_conv1"))(x)
-        x = (ZeroPadding2D((1, 1)))(x)
-        x = (Convolution2D(512, (3, 3), activation='relu', padding="same", name="block5_conv2"))(x)
-        x = (ZeroPadding2D((1, 1)))(x)
-        x = (Convolution2D(512, (3, 3), activation='relu', padding="same", name="block5_conv3"))(x)
-        x = (MaxPooling2D((2, 2), data_format="channels_first", strides=(2, 2)))(x)
+
+        # x = (ZeroPadding2D((1, 1), name="InputLayer"))(output)
+        # # block 1
+        # x = (Convolution2D(64, (3, 3), activation='relu', padding="same", name="block1_conv1"))(x)
+        # x = (ZeroPadding2D((1, 1)))(x)
+        # x = (Convolution2D(64, (3, 3), activation='relu', padding="same", name="block1_conv2"))(x)
+        # x = (MaxPooling2D((2, 2), data_format="channels_first", strides=(2, 2)))(x)
+        # # block 2
+        # x = (ZeroPadding2D((1, 1)))(x)
+        # x = (Convolution2D(128, (3, 3), activation='relu', padding="same", name="block2_conv1"))(x)
+        # x = (ZeroPadding2D((1, 1)))(x)
+        # x = (Convolution2D(128, (3, 3), activation='relu', padding="same", name="block2_conv2"))(x)
+        # x = (MaxPooling2D((2, 2), data_format="channels_first", strides=(2, 2)))(x)
+        # # block 3
+        # x = (ZeroPadding2D((1, 1)))(x)
+        # x = (Convolution2D(256, (3, 3), activation='relu', padding="same", name="block3_conv1x"))(x)
+        # x = (ZeroPadding2D((1, 1)))(x)
+        # x = (Convolution2D(256, (3, 3), activation='relu', padding="same", name="block3_conv2"))(x)
+        # x = (ZeroPadding2D((1, 1)))(x)
+        # x = (Convolution2D(256, (3, 3), activation='relu', padding="same", name="block3_conv3"))(x)
+        # x = (MaxPooling2D((2, 2), data_format="channels_first", strides=(2, 2)))(x)
+        # # block 4
+        # x = (ZeroPadding2D((1, 1)))(x)
+        # x = (Convolution2D(512, (3, 3), activation='relu', padding="same", name="block4_conv1"))(x)
+        # x = (ZeroPadding2D((1, 1)))(x)
+        # x = (Convolution2D(512, (3, 3), activation='relu', padding="same", name="block4_conv2"))(x)
+        # x = (ZeroPadding2D((1, 1)))(x)
+        # x = (Convolution2D(512, (3, 3), activation='relu', padding="same", name="block4_conv3"))(x)
+        # x = (MaxPooling2D((2, 2), data_format="channels_first", strides=(2, 2)))(x)
+        # # block 5
+        # x = (ZeroPadding2D((1, 1)))(x)
+        # x = (Convolution2D(512, (3, 3), activation='relu', padding="same", name="block5_conv1"))(x)
+        # x = (ZeroPadding2D((1, 1)))(x)
+        # x = (Convolution2D(512, (3, 3), activation='relu', padding="same", name="block5_conv2"))(x)
+        # x = (ZeroPadding2D((1, 1)))(x)
+        # x = (Convolution2D(512, (3, 3), activation='relu', padding="same", name="block5_conv3"))(x)
+        # x = (MaxPooling2D((2, 2), data_format="channels_first", strides=(2, 2)))(x)
+
+        model_base, output = self.get_pretrained_model(pretrained_model)
         # classification block
-        x = (Convolution2D(4096, (7, 7), activation='relu', name="fc1"))(x)
+        x = (Convolution2D(4096, (5, 5), activation='relu', name="fc1"))(output)
         x = (Dropout(0.5))(x)
         x = (Convolution2D(4096, (1, 1), activation='relu', name="fc2"))(x)
         x = (Dropout(0.5))(x)
@@ -220,7 +253,14 @@ class FaceRecognition(object):
         # output layer - predictions
         predictions = (Dense(self.m_num_classes, activation='softmax', name="predictions"))(x)
         # create model instance
-        self.m_model = Model(inputs=x_input, outputs=predictions, name="FaceRecognitionModelVGG16")
+        self.m_model = Model(inputs=model_base.input, outputs=predictions, name="FaceRecognitionModelVGG16")
+        # Layers
+        print("Total layers: {:10d}".format(len(self.m_model.layers)))
+        Layers_To_Freeze = 27
+        for layer in self.m_model.layers[:Layers_To_Freeze]:
+            layer.trainable = False
+        for layer in self.m_model.layers[Layers_To_Freeze:]:
+            layer.trainable = True
         # compile the  model
         self.m_model.compile(optimizer=SGD(lr=0.0001, momentum=0.9),
                              loss='categorical_crossentropy', metrics=['accuracy'])
@@ -230,7 +270,7 @@ class FaceRecognition(object):
 
 
 if __name__ == '__main__':
-    test = FaceRecognition(epochs=1, batch_size=32, image_width=48, image_height=48)
+    test = FaceRecognition(epochs=1, batch_size=2, image_width=224, image_height=224)
     test.create_img_generator()
     test.set_train_generator(
         train_folder=r'./dataset/simpsons_dataset')
@@ -239,7 +279,7 @@ if __name__ == '__main__':
     test.set_test_generator(
         test_folder=r'./dataset/kaggle_simpson_testset')
     # test.input_model(r'/Users/francesco/Downloads/the-simpsons-characters-dataset/weights.best.hdf5')
-    test.train_and_fit_model()
+    test.train_and_fit_model(pretrained_model='vgg16')
     test.predict_class_indices()
     test.predict_output()
     test.save_model()
