@@ -147,7 +147,7 @@ class FaceRecognition(object):
             self.m_model.load_weights(weights_file)
 
     def save_json_weights(self, path="./model/", namefile="facerec"):
-        """Export trained model split in two files: the scheme model in format 'json' and weigths'file in format h5."""
+        """Export trained model split in two files: the scheme model in format 'json' and weights'file in format h5."""
         if not os.path.exists(path):
             os.makedirs(path)
         # print the scheme model
