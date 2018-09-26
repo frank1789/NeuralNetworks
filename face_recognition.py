@@ -158,6 +158,8 @@ class FaceRecognition(object):
             json_file.write(model_json)
         # save weights
         self.m_model.save_weights(path + namefile + '_weights.h5')
+        # print the scheme model
+        plot_model(self.m_model, to_file='model.png')
 
     def save_model(self, path="./model/", namefile="facerecognition"):
         """Export trained model in format '.model'."""
@@ -207,7 +209,6 @@ class FaceRecognition(object):
         x = (ZeroPadding2D((1, 1)))(x)
         x = (Convolution2D(512, (3, 3), activation='relu', padding="same", name="block5_conv3"))(x)
         x = (MaxPooling2D((2, 2), data_format="channels_first", strides=(2, 2)))(x)
-
         # classification block
         x = (Convolution2D(4096, (7, 7), activation='relu', name="fc1"))(x)
         x = (Dropout(0.5))(x)
@@ -216,11 +217,10 @@ class FaceRecognition(object):
         x = (Convolution2D(2622, (1, 1)))(x)
         x = (Flatten())(x)
         x = (Activation('softmax'))(x)
-
+        # output layer - predictions
         predictions = (Dense(self.m_num_classes, activation='softmax', name="predictions"))(x)
-
         # create model instance
-        self.m_model = Model(inputs=x_input, output=predictions, name="FaceRecognitionModelVGG16")
+        self.m_model = Model(inputs=x_input, outputs=predictions, name="FaceRecognitionModelVGG16")
         # compile the  model
         self.m_model.compile(optimizer=SGD(lr=0.0001, momentum=0.9),
                              loss='categorical_crossentropy', metrics=['accuracy'])
@@ -230,10 +230,6 @@ class FaceRecognition(object):
 
 
 if __name__ == '__main__':
-    # from tensorflow.python.client import device_lib
-
-    # kbe.tensorflow_backend._get_available_gpus()
-    # print(device_lib.list_local_devices())
     test = FaceRecognition(epochs=1, batch_size=32, image_width=48, image_height=48)
     test.create_img_generator()
     test.set_train_generator(
