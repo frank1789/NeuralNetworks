@@ -260,13 +260,14 @@ class FaceRecognition(object):
                 x = (Activation('softmax'))(x)
                 self.prediction_ = x
             except ValueError as err:
-                print("Input size must be at least 48x48; got `input_shape=({:d},{:d},{:d})`".format(3, self.m_image_width, self.m_image_height))
+                print("Input size must be at least 48x48; got `input_shape=({:d},{:d},{:d})`".format(3,
+                                                                                                     self.m_image_width,
+                                                                                                     self.m_image_height))
                 print(err)
-
 
         elif pretrained_model == 'inception':
             model_base, output = self.get_pretrained_model(pretrained_model)
-            self.m_model_base_  = model_base.input
+            self.m_model_base_ = model_base.input
             # classification block
             x = GlobalAveragePooling2D()(output)
             x = Dense(Number_FC_Neurons, activation='relu')(x)  # new FC layer, random init
@@ -292,11 +293,11 @@ class FaceRecognition(object):
         self.m_model = Model(inputs=self.m_model_base_, outputs=predictions, name="FaceRecognitionModelVGG16")
         # Layers
         print("Total layers: {:10d}".format(len(self.m_model.layers)))
-        Layers_To_Freeze = 312
-        for layer in self.m_model.layers[:Layers_To_Freeze]:
-            layer.trainable = False
-        for layer in self.m_model.layers[Layers_To_Freeze:]:
-            layer.trainable = True
+        # Layers_To_Freeze = 312
+        # for layer in self.m_model.layers[:Layers_To_Freeze]:
+        #    layer.trainable = False
+        # for layer in self.m_model.layers[Layers_To_Freeze:]:
+        #    layer.trainable = True
         # compile the  model
         self.m_model.compile(optimizer=SGD(lr=0.0001, momentum=0.9),
                              loss='categorical_crossentropy', metrics=['accuracy'])
@@ -306,7 +307,7 @@ class FaceRecognition(object):
 
 
 if __name__ == '__main__':
-    test = FaceRecognition(epochs=1, batch_size=32, image_width=48, image_height=48)
+    test = FaceRecognition(epochs=1, batch_size=32, image_width=139, image_height=139)
     test.create_img_generator()
     test.set_train_generator(
         train_folder=r'./dataset/simpsons_dataset')
@@ -315,7 +316,7 @@ if __name__ == '__main__':
     test.set_test_generator(
         test_folder=r'./dataset/kaggle_simpson_testset')
     # test.input_model(r'/Users/francesco/Downloads/the-simpsons-characters-dataset/weights.best.hdf5')
-    test.train_and_fit_model(pretrained_model='')
+    test.train_and_fit_model(pretrained_model='inception')
     test.predict_class_indices()
     test.predict_output()
     test.save_model()
