@@ -278,12 +278,6 @@ class FaceRecognition(object):
             self.m_model_base_ = model_base.input
             # classification block
             x = (Flatten())(output)
-            x = (Convolution2D(4096, (7, 7), activation='relu', name="fc1"))(x)
-            x = (Dropout(0.5))(x)
-            x = (Convolution2D(4096, (1, 1), activation='relu', name="fc2"))(x)
-            x = (Dropout(0.5))(x)
-            x = (Convolution2D(2622, (1, 1)))(x)
-            x = (Flatten())(output)
             x = (Activation('softmax'))(x)
             self.prediction_ = x
 
@@ -307,7 +301,7 @@ class FaceRecognition(object):
 
 
 if __name__ == '__main__':
-    test = FaceRecognition(epochs=1, batch_size=32, image_width=139, image_height=139)
+    test = FaceRecognition(epochs=1, batch_size=32, image_width=48, image_height=48)
     test.create_img_generator()
     test.set_train_generator(
         train_folder=r'./dataset/simpsons_dataset')
@@ -316,7 +310,7 @@ if __name__ == '__main__':
     test.set_test_generator(
         test_folder=r'./dataset/kaggle_simpson_testset')
     # test.input_model(r'/Users/francesco/Downloads/the-simpsons-characters-dataset/weights.best.hdf5')
-    test.train_and_fit_model(pretrained_model='inception')
+    test.train_and_fit_model(pretrained_model='vgg16')
     test.predict_class_indices()
     test.predict_output()
     test.save_model()
