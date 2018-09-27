@@ -1,7 +1,7 @@
 #!usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import os
+import os, sys
 from keras.models import Model, model_from_json, load_model
 from keras.layers import Dropout, Flatten, Dense, Input
 from keras.optimizers import SGD
@@ -32,7 +32,7 @@ class FaceRecognition(object):
     m_num_train_samples = 0
     m_num_classes = 0
     m_num_validate_samples = 0
-    # model predicition
+    # attibute model prediction
     prediction_ = None
     m_model_base_ = None
 
@@ -111,10 +111,8 @@ class FaceRecognition(object):
             seed=42
         )
 
-    def train_and_fit_model(self, pretrained_model):
+    def train_and_fit_model(self):
         """Train the model"""
-        # Compile Neural Network
-        self.face_recognition_model(pretrained_model)
         # Fit
         STEP_SIZE_TRAIN = self.m_num_train_samples // self.m_batch_size
         STEP_SIZE_VALID = self.m_num_validate_samples // self.m_batch_size
