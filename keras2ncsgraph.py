@@ -3,6 +3,7 @@ import sys
 import tensorflow as tf
 from keras import backend as kbe
 from keras.models import model_from_json, load_model
+from keras import layers
 
 # suppress warning and error message tf
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -23,7 +24,7 @@ class KerasModel2NCSGraph(object):
         if not os.path.exists(self.tf_model_dir):
             print("make directory: '{:s}'".format(self.tf_model_dir))
             os.makedirs(self.tf_model_dir)
-        if not os.path.exists(self.tf_model_dir):
+        if not os.path.exists(self.graph_dir):
             print("make directory: '{:s}'".format(self.graph_dir))
             os.makedirs(self.graph_dir)
 
@@ -63,8 +64,13 @@ class KerasModel2NCSGraph(object):
     def compile_graph_model(self, name_graph_model_file='model'):
         """Compile graph model for Neural Compute Stick (Intel Movidius) starting from Tensorflow model."""
 
-        graph_model = self.graph_dir + '/' + name_graph_model_file + '.graph'  # complete graph file model (path + name)
-        cmd = 'mvNCCompile {0}.meta -in {1} -on {2} -o {3}'.format(self.tf_model_, '0', '0', graph_model)
+        graph_model = self.graph_dir
+        graph_model += '/' + name_graph_model_file + '.graph'  # complete graph file model (path + name)
+        # extract layer input name
+        # layer_input = self.model_
+        #  ectract layer otuput name
+        # layer_output = self.model_.get_layer().output
+        cmd = 'mvNCCompile {0} -in {1} -on {2} -o {3}'.format(self.tf_model_, 'input1', 'predictions', graph_model)
         print(cmd)
         # start compile
         # os.system('mvNCCompile {0}.meta -in {1} -on {2} -o {3}')
