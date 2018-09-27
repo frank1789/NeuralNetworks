@@ -74,38 +74,12 @@ class KerasModel2NCSGraph(object):
         print(cmd)
         # start compile
         # os.system('mvNCCompile {0}.meta -in {1} -on {2} -o {3}')
+
+    def __del__(self):
         pass
-    #
-    # def tf_to_graph(self, tf_model_path, model_in, model_out, graph_path):
-    #     os.system('mvNCCompile {0}.meta -in {1} -on {2} -o {3}'.format(tf_model_path, model_in, model_out, graph_path))
-    #     return True
-    #
-    # def keras_to_graph(self, model_path, model_in, model_out, weights_path, graph_path, take_tf_files = False):
-    # # Getting Keras Model:
-    #     keras_model = get_keras_model(model_path, weights_path)
-    #
-    #  # Saving TensorFlow Model from Keras Model:
-    #     tf_model_path = './TF_Model/tf_model'
-    #     keras_to_tf(tf_model_path)
-    #
-    #     tf_to_graph(tf_model_path, model_in, model_out, graph_path)
-    #
-    #     if take_tf_files == False:
-    #         os.system('rm -rf ./TF_Model')
 
 
 if __name__ == '__main__':
-    # try:
-    #     model_path = sys.argv[1]
-    #     model_in = sys.argv[2]
-    #     model_out = sys.argv[3]
-    #     weights_path = sys.argv[4]
-    #     graph_path = sys.argv[5]
-    # except:
-    #     print('Run with arguments !\nArguments:\nmodel_path model_in model_out weights_path graph_path')
-    #     exit()
-    #
-    # keras_to_graph(model_path, model_in, model_out, weights_path, graph_path, False)
     t = KerasModel2NCSGraph()
     t.set_keras_model_file('inceptionv3-transfer-learning.model')
     t.keras_to_tensorflow()
