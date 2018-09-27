@@ -171,29 +171,29 @@ class FaceRecognition(object):
         # print the scheme model
         plot_model(self.m_model, to_file='model.png')
 
-    def get_pretrained_model(self, pretrained_model):
+    def get_pretrained_model(self, pretrained_model, weights):
         input_shape = (3, self.m_image_width, self.m_image_height)
         model_base = input_shape
         if pretrained_model == 'inception':
-            model_base = InceptionV3(include_top=False, input_shape=input_shape, weights='imagenet')
+            model_base = InceptionV3(include_top=False, input_shape=input_shape, weights=weights)
             output = model_base.output
         elif pretrained_model == 'xception':
-            model_base = Xception(include_top=False, input_shape=input_shape, weights='imagenet')
-            output = model_base.output
+            model_base = Xception(include_top=False, input_shape=input_shape, weights=weights)
+            output = (Flatten())(model_base.output)
         elif pretrained_model == 'resnet50':
-            model_base = ResNet50(include_top=False, input_shape=input_shape, weights='imagenet')
-            output = model_base.output
+            model_base = ResNet50(include_top=False, input_shape=input_shape, weights=weights)
+            output = Flatten()(model_base.output)
         elif pretrained_model == 'vgg16':
-            model_base = VGG16(include_top=False, input_shape=input_shape, weights='imagenet')
+            model_base = VGG16(include_top=False, input_shape=input_shape, weights=weights)
             output = model_base.output
         elif pretrained_model == 'vgg19':
-            model_base = VGG19(include_top=False, input_shape=input_shape, weights='imagenet')
+            model_base = VGG19(include_top=False, input_shape=input_shape, weights=weights)
             output = model_base.output
         elif pretrained_model == 'all':
             input = Input(shape=input_shape)
-            inception_model = InceptionV3(include_top=False, input_tensor=input, weights='imagenet')
-            xception_model = Xception(include_top=False, input_tensor=input, weights='imagenet')
-            resnet_model = ResNet50(include_top=False, input_tensor=input, weights='imagenet')
+            inception_model = InceptionV3(include_top=False, input_tensor=input, weights=weights)
+            xception_model = Xception(include_top=False, input_tensor=input, weights=weights)
+            resnet_model = ResNet50(include_top=False, input_tensor=input, weights=weights)
 
             flattened_outputs = [Flatten()(inception_model.output),
                                  Flatten()(xception_model.output),
@@ -202,7 +202,8 @@ class FaceRecognition(object):
             model_base = Model(input, output)
         return model_base, output
 
-    def face_recognition_model(self, pretrained_model='', Number_FC_Neurons=1024):
+    def set_face_recognition_model(self, pretrained_model='', weights='', Number_FC_Neurons=1024,
+                               trainable_parameters=False, num_trainable_parameters=1.0):
         """Model face recognition based on model VGG16 Oxford University."""
 
         # use personal model
@@ -249,7 +250,7 @@ class FaceRecognition(object):
                 x = (Convolution2D(512, (3, 3), activation='relu', padding="same", name="block5_conv3"))(x)
                 x = (MaxPooling2D((2, 2), data_format="channels_first", strides=(2, 2)))(x)
                 # classification block
-                x = (Convolution2D(4096, (7, 7), activation='relu', name="fc1"))(x)
+                x = (Convolution2D(4096, (7, 7), activation='relu', padding="same", name="fc1"))(x)
                 x = (Dropout(0.5))(x)
                 x = (Convolution2D(4096, (1, 1), activation='relu', name="fc2"))(x)
                 x = (Dropout(0.5))(x)
@@ -258,13 +259,13 @@ class FaceRecognition(object):
                 x = (Activation('softmax'))(x)
                 self.prediction_ = x
             except ValueError as err:
-                print("Input size must be at least 48x48; got `input_shape=({:d},{:d},{:d})`".format(3,
-                                                                                                     self.m_image_width,
-                                                                                                     self.m_image_height))
-                print(err)
+                message = "ValueError:Input size must be at least 48 x 48;"
+                message += " got `input_shape=({:d},{:d},{:d})`".format(3, self.m_image_width, self.m_image_height)
+                print(message)
+                sys.exit(err)
 
-        elif pretrained_model == 'inception':
-            model_base, output = self.get_pretrained_model(pretrained_model)
+        elif pretrained_model == 'inception' or pretrained_model == 'xception':
+            model_base, output = self.get_pretrained_model(pretrained_model, weights)
             self.m_model_base_ = model_base.input
             # classification block
             x = GlobalAveragePooling2D()(output)
@@ -272,7 +273,7 @@ class FaceRecognition(object):
             self.prediction_ = x
 
         elif pretrained_model == 'vgg16' or pretrained_model == 'vgg19':
-            model_base, output = self.get_pretrained_model(pretrained_model)
+            model_base, output = self.get_pretrained_model(pretrained_model, weights)
             self.m_model_base_ = model_base.input
             # classification block
             x = (Flatten())(output)
@@ -285,21 +286,25 @@ class FaceRecognition(object):
         self.m_model = Model(inputs=self.m_model_base_, outputs=predictions, name="FaceRecognitionModelVGG16")
         # Layers
         print("Total layers: {:10d}".format(len(self.m_model.layers)))
-        # Layers_To_Freeze = 312
-        # for layer in self.m_model.layers[:Layers_To_Freeze]:
-        #    layer.trainable = False
-        # for layer in self.m_model.layers[Layers_To_Freeze:]:
-        #    layer.trainable = True
+        if trainable_parameters:
+            if 0 < num_trainable_parameters < 1.0:
+                layers2freeze = int(len(self.m_model.layers) * num_trainable_parameters) + 1
+                for layer in self.m_model.layers[:layers2freeze]:
+                    layer.trainable = False
+                for layer in self.m_model.layers[layers2freeze:]:
+                    layer.trainable = True
+
         # compile the  model
         self.m_model.compile(optimizer=SGD(lr=0.0001, momentum=0.9),
                              loss='categorical_crossentropy', metrics=['accuracy'])
 
         # print model structure diagram
         print(self.m_model.summary())
+        return self
 
 
 if __name__ == '__main__':
-    test = FaceRecognition(epochs=1, batch_size=32, image_width=48, image_height=48)
+    test = FaceRecognition(epochs=1, batch_size=32, image_width=139, image_height=139)
     test.create_img_generator()
     test.set_train_generator(
         train_folder=r'./dataset/simpsons_dataset')
@@ -308,7 +313,8 @@ if __name__ == '__main__':
     test.set_test_generator(
         test_folder=r'./dataset/kaggle_simpson_testset')
     # test.input_model(r'/Users/francesco/Downloads/the-simpsons-characters-dataset/weights.best.hdf5')
-    test.train_and_fit_model(pretrained_model='vgg16')
+    test.set_face_recognition_model(pretrained_model='inception', weights='imagenet', trainable_parameters=True, num_trainable_parameters=0.5)
+    test.train_and_fit_model(pretrained_model='inception', weights='imagenet')
     test.predict_class_indices()
     test.predict_output()
     test.save_model()
