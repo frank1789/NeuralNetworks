@@ -1,7 +1,8 @@
 #!usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import os, sys
+import os
+import sys
 from keras.models import Model, model_from_json, load_model
 from keras.layers import Dropout, Flatten, Dense, Input
 from keras.optimizers import SGD
@@ -32,7 +33,7 @@ class FaceRecognition(object):
     m_num_train_samples = 0
     m_num_classes = 0
     m_num_validate_samples = 0
-    # attibute model prediction
+    # attribute model prediction
     prediction_ = None
     m_model_base_ = None
 
@@ -152,8 +153,6 @@ class FaceRecognition(object):
         """Export trained model split in two files: the scheme model in format 'json' and weights'file in format h5."""
         if not os.path.exists(path):
             os.makedirs(path)
-        # print the scheme model
-        plot_model(self.m_model, to_file='model.png')
         # save as JSON
         model_json = self.m_model.to_json()
         with open(path + namefile + ".json", "w") as json_file:
@@ -161,7 +160,7 @@ class FaceRecognition(object):
         # save weights
         self.m_model.save_weights(path + namefile + '_weights.h5')
         # print the scheme model
-        plot_model(self.m_model, to_file='model.png')
+        plot_model(self.m_model, to_file='model.png', show_layer_names=True, show_shapes=True)
 
     def save_model(self, path="./model/", namefile="facerecognition"):
         """Export trained model in format '.model'."""
@@ -169,9 +168,15 @@ class FaceRecognition(object):
             os.makedirs(path)
         self.m_model.save(path + namefile + ".model")
         # print the scheme model
-        plot_model(self.m_model, to_file='model.png')
+        plot_model(self.m_model, to_file='model.png', show_layer_names=True, show_shapes=True)
 
-    def get_pretrained_model(self, pretrained_model, weights):
+    def get_pretrained_model(self, pretrained_model, weights='imagenet'):
+        """This method allows to define already existing neural networks and to export their model as a starting point.
+        :param pretrained_model (string) set name of neural network as inception, vgg16 ecc.
+        :param weights (string) set weights of NN
+        :return model_base (obj) the model select
+        :return output (obj) pre-trianed NN weights
+        """
         input_shape = (3, self.m_image_width, self.m_image_height)
         model_base = input_shape
         if pretrained_model == 'inception':
@@ -203,13 +208,22 @@ class FaceRecognition(object):
         return model_base, output
 
     def set_face_recognition_model(self, pretrained_model='', weights='', Number_FC_Neurons=1024,
-                               trainable_parameters=False, num_trainable_parameters=1.0):
-        """Model face recognition based on model VGG16 Oxford University."""
+                                   trainable_parameters=False, num_trainable_parameters=1.0):
+        """It allows to use different neural networks of convulsion, the first is based on the face recognition model
+        VGG16 Oxford University, available at the address '' and personalized.
+        Instead, those defined succinctly are the expansion of existing networks with the addition of the custom
+        classifier. Furthermore, it is possible to specify whether to train all parameters or just some parameters,
+        simply setting a dimensionless range between 0 and 1.0.
+        :param pretrained_model
+        :param weights
+        :param Number_FC_Neurons
+        :param trainable_parameters
+        :param num_trainable_parameters
+        :return self(object)
+        """
 
-        # use personal model
-        if pretrained_model == '':
-            # verify min size
-            try:
+        if pretrained_model == '':  # use personal model
+            try:    # check minimum size image
                 # define input model block
                 x_input = Input((3, self.m_image_width, self.m_image_height))
                 self.m_model_base_ = x_input
@@ -284,7 +298,8 @@ class FaceRecognition(object):
         predictions = (Dense(self.m_num_classes, activation='softmax', name="predictions"))(self.prediction_)
         # create model instance
         self.m_model = Model(inputs=self.m_model_base_, outputs=predictions, name="FaceRecognitionModelVGG16")
-        # Layers
+
+        # Layers - set trainable parameters
         print("Total layers: {:10d}".format(len(self.m_model.layers)))
         if trainable_parameters:
             if 0 < num_trainable_parameters < 1.0:
@@ -293,6 +308,9 @@ class FaceRecognition(object):
                     layer.trainable = False
                 for layer in self.m_model.layers[layers2freeze:]:
                     layer.trainable = True
+            else:
+                for layer in self.m_model.layers:
+                    layer.trainable = False
 
         # compile the  model
         self.m_model.compile(optimizer=SGD(lr=0.0001, momentum=0.9),
@@ -312,9 +330,12 @@ if __name__ == '__main__':
         validate_folder=r'./dataset/simpsons_dataset')
     test.set_test_generator(
         test_folder=r'./dataset/kaggle_simpson_testset')
-    # test.input_model(r'/Users/francesco/Downloads/the-simpsons-characters-dataset/weights.best.hdf5')
-    test.set_face_recognition_model(pretrained_model='inception', weights='imagenet', trainable_parameters=True, num_trainable_parameters=0.5)
-    test.train_and_fit_model(pretrained_model='inception', weights='imagenet')
+
+    # prepare the model
+    test.set_face_recognition_model(pretrained_model='inception', weights='imagenet', trainable_parameters=True,
+                                    num_trainable_parameters=0.5)
+    # train fit
+    test.train_and_fit_model()
     test.predict_class_indices()
     test.predict_output()
     test.save_model()
