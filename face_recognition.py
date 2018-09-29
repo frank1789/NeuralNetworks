@@ -19,7 +19,7 @@ import h5py
 # suppress warning and error message tf
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 # specify input shape
-kbe.set_image_dim_ordering('th')
+kbe.set_image_dim_ordering('tf')
 
 
 class FaceRecognition(object):
