@@ -310,14 +310,14 @@ class FaceRecognition(object):
             model_base, output = self.get_pretrained_model(pretrained_model, weights)
             self.m_model_base_ = model_base.input
             # classification block
-            x = (Flatten())(output)
+            x = GlobalAveragePooling2D()(output)
             x = (Activation('softmax'))(x)
             self.prediction_ = x
 
         # output layer - predictions
         predictions = (Dense(self.m_num_classes, activation='softmax', name="predictions"))(self.prediction_)
         # create model instance
-        self.m_model = Model(inputs=self.m_model_base_, outputs=predictions, name="FaceRecognitionModelVGG16")
+        self.m_model = Model(inputs=self.m_model_base_, outputs=predictions)
 
         # Layers - set trainable parameters
         print("Total layers: {:10d}".format(len(self.m_model.layers)))
