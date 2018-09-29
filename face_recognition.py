@@ -65,7 +65,13 @@ class FaceRecognition(object):
         """
         Define image generators that will variations of image with the image rotated slightly, shifted up, down,
         left, or right, sheared, zoomed in, or flipped horizontally on the vertical axis (ie. person looking to the
-        left ends up looking to the right)
+        left ends up looking to the right).
+        :param rotation_range (int) generates a rotation of the image of the specify value
+        :param width_shift_range (float) generates a displacement of the image of the specify value
+        :param height_shift_range (float) generates a displacement of the image of the specify value
+        :param shear_range (float) generates a cut-out of the image of the specify value
+        :param zoom_range (float) generates a magnification of the image of the specify value
+        :param horizontal_flip (bool) enable flips the image horizontally
         :return: ImageDataGenerator (object)
         """
         return ImageDataGenerator(
@@ -139,12 +145,12 @@ class FaceRecognition(object):
         self.m_labels = dict((v, k) for k, v in labels.items())
         self.m_predictions = [labels[k] for k in predicted_class_indices]
 
-    def load_model_from_file(self, filename, weightsfile=None):
+    def load_model_from_file(self, filename, weights_file=None):
         """
         Import trained model store as 1 file ('.model', '.h5')
         Or import the schema model in format 'json' and weights's file in format h5.
         :param filename (str) pass path model file
-        :parma weightsfile(str) pass path weigths file
+        :parma weights_file(str) pass path weights file
         """
         if os.path.exists(filename):
             # load entire model
@@ -153,15 +159,15 @@ class FaceRecognition(object):
             else:
                 raise ValueError("Invalid extension, supported extensions are: '.h5', '.model'")
 
-        elif os.path.exists(filename) and weightsfile is not None:
-            if filename.endswith('.json') and weightsfile.endswith('.h5'):
+        elif os.path.exists(filename) and weights_file is not None:
+            if filename.endswith('.json') and weights_file.endswith('.h5'):
                 # Model reconstruction from JSON file
                 with open(filename, 'r') as f:
                     self.m_model = model_from_json(f.read())
                 # Load weights into the new model
-                self.m_model.load_weights(weightsfile)
+                self.m_model.load_weights(weights_file)
             else:
-                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), (filename, weightsfile))
+                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), (filename, weights_file))
 
         else:
             raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), filename)
@@ -208,7 +214,7 @@ class FaceRecognition(object):
         :param pretrained_model (string) set name of neural network as inception, vgg16 ecc.
         :param weights (string) set weights of NN
         :return model_base (obj) the model select
-        :return output (obj) pre-trianed NN weights
+        :return output (obj) pre-trained NN weights
         """
         if pretrained_model == 'inception':
             model_base = InceptionV3(include_top=False, weights=weights)
