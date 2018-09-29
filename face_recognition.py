@@ -3,6 +3,7 @@
 
 import os
 import sys
+import errno
 from keras.models import Model, model_from_json, load_model
 from keras.layers import Dropout, Flatten, Dense, Input
 from keras.optimizers import SGD
@@ -42,6 +43,7 @@ class FaceRecognition(object):
         self.m_batch_size = batch_size
         self.m_image_width = image_width
         self.m_image_height = image_height
+        self.pathdir = './Model/'
 
     @staticmethod
     # Get count of number of files in this folder and all sub-folders
@@ -60,7 +62,8 @@ class FaceRecognition(object):
     @staticmethod
     def create_img_generator(rotation_range=30, width_shift_range=0.2, height_shift_range=0.2, shear_range=0.2,
                              zoom_range=0.2, horizontal_flip=True):
-        """Define image generators that will variations of image with the image rotated slightly, shifted up, down,
+        """
+        Define image generators that will variations of image with the image rotated slightly, shifted up, down,
         left, or right, sheared, zoomed in, or flipped horizontally on the vertical axis (ie. person looking to the
         left ends up looking to the right)
         :return: ImageDataGenerator (object)
@@ -119,7 +122,7 @@ class FaceRecognition(object):
         STEP_SIZE_VALID = self.m_num_validate_samples // self.m_batch_size
         self.m_model.fit_generator(self.m_train_generator, steps_per_epoch=STEP_SIZE_TRAIN,
                                    validation_data=self.m_valid_generator, validation_steps=STEP_SIZE_VALID,
-                                   epochs=self.m_epochs, class_weight="auto")
+                                   epochs=self.m_epochs, class_weight="auto", use_multiprocessing=True)
         # Evaluate the model
         self.m_model.evaluate_generator(generator=self.m_valid_generator)
 
@@ -136,75 +139,92 @@ class FaceRecognition(object):
         self.m_labels = dict((v, k) for k, v in labels.items())
         self.m_predictions = [labels[k] for k in predicted_class_indices]
 
-    def input_model(self, model_file):
-        if os.path.exists(model_file):
-            self.m_model = load_model(model_file)
+    def load_model_from_file(self, filename, weightsfile=None):
+        """
+        Import trained model store as 1 file ('.model', '.h5')
+        Or import the schema model in format 'json' and weights's file in format h5.
+        :param filename (str) pass path model file
+        :parma weightsfile(str) pass path weigths file
+        """
+        if os.path.exists(filename):
+            # load entire model
+            if filename.endswith(('.model', '.h5')):
+                self.m_model = load_model(filename)
+            else:
+                raise ValueError("Invalid extension, supported extensions are: '.h5', '.model'")
 
-    def input_json_weights(self, json_file, weights_file):
-        if os.path.exists(json_file) and os.path.exists(weights_file):
-            # Model reconstruction from JSON file
-            with open(json_file, 'r') as f:
-                self.m_model = model_from_json(f.read())
+        elif os.path.exists(filename) and weightsfile is not None:
+            if filename.endswith('.json') and weightsfile.endswith('.h5'):
+                # Model reconstruction from JSON file
+                with open(filename, 'r') as f:
+                    self.m_model = model_from_json(f.read())
+                # Load weights into the new model
+                self.m_model.load_weights(weightsfile)
+            else:
+                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), (filename, weightsfile))
 
-            # Load weights into the new model
-            self.m_model.load_weights(weights_file)
+        else:
+            raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), filename)
 
-    def save_json_weights(self, path="./model/", namefile="facerec"):
-        """Export trained model split in two files: the scheme model in format 'json' and weights'file in format h5."""
-        if not os.path.exists(path):
-            os.makedirs(path)
-        # save as JSON
-        model_json = self.m_model.to_json()
-        with open(path + namefile + ".json", "w") as json_file:
-            json_file.write(model_json)
-        # save weights
-        self.m_model.save_weights(path + namefile + '_weights.h5')
-        # print the scheme model
-        plot_model(self.m_model, to_file='model.png', show_layer_names=True, show_shapes=True)
+        print(self.m_model.summary())
 
-    def save_model(self, path="./model/", namefile="facerecognition"):
-        """Export trained model in format '.model'."""
-        if not os.path.exists(path):
-            os.makedirs(path)
-        self.m_model.save(path + namefile + ".model")
-        # print the scheme model
-        plot_model(self.m_model, to_file='model.png', show_layer_names=True, show_shapes=True)
+    def save_model_to_file(self, name='model', extension='.h5', export_image=False):
+        """
+        Export trained model store as 1 file ('.model', '.h5')
+        or export the schema model in format 'json' and weights's file in format h5.
+        :param name (str) assign file name
+        :param extension (str) assign file exstension
+        :param export_image (bool) generate figure schema model
+        """
+        if not os.path.exists(self.pathdir):
+            os.makedirs(self.pathdir)
+        # build the namefile
+        filename = os.path.join(self.pathdir, (name + extension))
+        if extension not in ['.h5', '.model', '.json']:
+            raise ValueError("Invalid extension, supported extensions are: '.h5', '.model', '.json'")
+        if extension == '.h5':
+            # export complete model with weights
+            self.m_model.save(filename)
+        elif extension == '.model':
+            # export complete model with weights
+            self.m_model.save(filename)
+        elif extension == '.json':
+            # save as JSON and weights
+            model_json = self.m_model.to_json()
+            with open(filename, "w") as json_file:
+                json_file.write(model_json)
+            # save weights
+
+            self.m_model.save_weights(os.path.join(self.pathdir, (name + '_weights.h5')))
+
+        if export_image:
+            image_name = os.path.join(self.pathdir, (name + '.png'))
+            # print image of schema model
+            plot_model(self.m_model, to_file=image_name, show_layer_names=True, show_shapes=True)
 
     def get_pretrained_model(self, pretrained_model, weights='imagenet'):
-        """This method allows to define already existing neural networks and to export their model as a starting point.
+        """
+        This method allows to define already existing neural networks and to export their model as a starting point.
         :param pretrained_model (string) set name of neural network as inception, vgg16 ecc.
         :param weights (string) set weights of NN
         :return model_base (obj) the model select
         :return output (obj) pre-trianed NN weights
         """
-        input_shape = (3, self.m_image_width, self.m_image_height)
-        model_base = input_shape
         if pretrained_model == 'inception':
-            model_base = InceptionV3(include_top=False, input_shape=input_shape, weights=weights)
+            model_base = InceptionV3(include_top=False, weights=weights)
             output = model_base.output
         elif pretrained_model == 'xception':
-            model_base = Xception(include_top=False, input_shape=input_shape, weights=weights)
+            model_base = Xception(include_top=False, weights=weights)
             output = (Flatten())(model_base.output)
         elif pretrained_model == 'resnet50':
-            model_base = ResNet50(include_top=False, input_shape=input_shape, weights=weights)
+            model_base = ResNet50(include_top=False, weights=weights)
             output = Flatten()(model_base.output)
         elif pretrained_model == 'vgg16':
-            model_base = VGG16(include_top=False, input_shape=input_shape, weights=weights)
+            model_base = VGG16(include_top=False, weights=weights)
             output = model_base.output
         elif pretrained_model == 'vgg19':
-            model_base = VGG19(include_top=False, input_shape=input_shape, weights=weights)
+            model_base = VGG19(include_top=False, weights=weights)
             output = model_base.output
-        elif pretrained_model == 'all':
-            input = Input(shape=input_shape)
-            inception_model = InceptionV3(include_top=False, input_tensor=input, weights=weights)
-            xception_model = Xception(include_top=False, input_tensor=input, weights=weights)
-            resnet_model = ResNet50(include_top=False, input_tensor=input, weights=weights)
-
-            flattened_outputs = [Flatten()(inception_model.output),
-                                 Flatten()(xception_model.output),
-                                 Flatten()(resnet_model.output)]
-            output = Concatenate()(flattened_outputs)
-            model_base = Model(input, output)
         return model_base, output
 
     def set_face_recognition_model(self, pretrained_model='', weights='', Number_FC_Neurons=1024,
