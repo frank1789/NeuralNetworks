@@ -12,7 +12,7 @@ from tensorflow.python.framework import graph_util
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 
-class KerasToNCSGraph(object):
+class KerasToNCSGraph:
     model_ = None  # store model
     tf_model_ = None  # tensorflow meta file graph structure
     base_dir = './ModelGraph'
@@ -124,10 +124,6 @@ class KerasToNCSGraph(object):
         if os.path.exists(self.base_dir):
             print("removing previous temporary files")
             shutil.rmtree(self.base_dir, ignore_errors=True)
-
-    def __del__(self):
-        del self.wait
-        del self.lock
 
 
 if __name__ == '__main__':
