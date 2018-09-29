@@ -229,7 +229,8 @@ class FaceRecognition(object):
 
     def set_face_recognition_model(self, pretrained_model='', weights='', Number_FC_Neurons=1024,
                                    trainable_parameters=False, num_trainable_parameters=1.0):
-        """It allows to use different neural networks of convulsion, the first is based on the face recognition model
+        """
+        It allows to use different neural networks of convulsion, the first is based on the face recognition model
         VGG16 Oxford University, available at the address '' and personalized.
         Instead, those defined succinctly are the expansion of existing networks with the addition of the custom
         classifier. Furthermore, it is possible to specify whether to train all parameters or just some parameters,
@@ -243,7 +244,7 @@ class FaceRecognition(object):
         """
 
         if pretrained_model == '':  # use personal model
-            try:    # check minimum size image
+            try:  # check minimum size image
                 # define input model block
                 x_input = Input((3, self.m_image_width, self.m_image_height))
                 self.m_model_base_ = x_input
