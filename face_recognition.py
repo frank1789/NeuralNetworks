@@ -8,14 +8,13 @@ from keras.models import Model, model_from_json, load_model
 from keras.layers import Dropout, Flatten, Dense, Input
 from keras.optimizers import SGD
 from keras.layers.convolutional import ZeroPadding2D
-from keras.layers import MaxPooling2D, Convolution2D, Activation, Concatenate, GlobalAveragePooling2D
+from keras.layers import MaxPooling2D, Convolution2D, Activation, GlobalAveragePooling2D
 from keras.applications import VGG16, VGG19, InceptionV3, Xception, ResNet50
 from keras.applications.imagenet_utils import preprocess_input
 from keras.preprocessing.image import ImageDataGenerator
 from keras.utils import plot_model
 from keras import backend as kbe
 import numpy as np
-import h5py
 
 # suppress warning and error message tf
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
