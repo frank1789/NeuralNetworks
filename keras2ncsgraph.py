@@ -58,6 +58,9 @@ class KerasToNCSGraph:
             self.lock.release()
             self.wait.stop()
             print("Done")
+        else:
+            print("No files found")
+            sys.exit(0)
 
         if os.path.exists(model_file) and weights_file is not None:
             self.wait.start()
@@ -79,6 +82,9 @@ class KerasToNCSGraph:
             self.lock.release()
             self.wait.stop()
             print("Done")
+        else:
+            print("No files found")
+            sys.exit(0)
 
         if view_summary:
             print('Model Summary:', self.model_.summary())  # print summary model
