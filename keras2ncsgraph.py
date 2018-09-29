@@ -1,4 +1,5 @@
 import os
+import sys
 import shutil
 import threading
 from utilityfunction import Spinner
@@ -48,8 +49,12 @@ class KerasToNCSGraph:
         if os.path.exists(model_file) and weights_file is None:
             self.wait.start()
             self.lock.acquire()
-            if model_file.endswith((".h5", ".model")):
-                self.model_ = load_model(model_file)
+            try:
+                if model_file.endswith((".h5", ".model")):
+                    self.model_ = load_model(model_file)
+            except IOError as err:
+                print("Could not read file:", model_file)
+                sys.exit(err)
             self.lock.release()
             self.wait.stop()
             print("Done")
@@ -57,12 +62,20 @@ class KerasToNCSGraph:
         if os.path.exists(model_file) and weights_file is not None:
             self.wait.start()
             self.lock.acquire()
-            if os.path.exists(model_file) and model_file.endswith(".json"):
-                with open(model_file, 'r') as model_input:
-                    model = model_input.read()
-                    self.model_ = model_from_json(model)
-            if os.path.exists(weights_file) and weights_file.endswith(".h5"):
-                self.model_.load_weights(weights_file)  # load weights:
+            try:
+                if os.path.exists(model_file) and model_file.endswith(".json"):
+                    with open(model_file, 'r') as model_input:
+                        model = model_input.read()
+                        self.model_ = model_from_json(model)
+            except IOError as err:
+                print("Could not read file: ", model_file)
+                sys.exit(err)
+            try:
+                if os.path.exists(weights_file) and weights_file.endswith(".h5"):
+                    self.model_.load_weights(weights_file)  # load weights
+            except IOError as err:
+                print("Could not read file: ", weights_file)
+                sys.exit(err)
             self.lock.release()
             self.wait.stop()
             print("Done")
