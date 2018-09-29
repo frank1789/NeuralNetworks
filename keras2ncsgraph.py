@@ -1,10 +1,12 @@
 import os
 import shutil
+import threading
+from utilityfunction import Spinner
 import tensorflow as tf
 from keras import backend as kbe
 from keras.models import model_from_json, load_model
-from tensorflow.python.framework import graph_util
 from tensorflow.python.framework import graph_io
+from tensorflow.python.framework import graph_util
 
 # suppress warning and error message tf
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -14,8 +16,8 @@ class KerasToNCSGraph(object):
     model_ = None  # store model
     tf_model_ = None  # tensorflow meta file graph structure
     base_dir = './ModelGraph'
-    tf_model_dir = './tf_model/'  # folder tensorflow model
-    graph_dir = './ModelGraph/graph_model'  # folder graph model
+    tf_model_dir = base_dir + '/tf_model/'  # folder tensorflow model
+    graph_dir = base_dir + '/graph_model/'  # folder graph model
 
     def __init__(self):
         print("Prepare conversion form Keras model to Graph model")
@@ -23,7 +25,8 @@ class KerasToNCSGraph(object):
         if not os.path.exists(self.base_dir):
             print("make directory: '{:s}'".format(self.base_dir))
             os.makedirs(self.base_dir)
-        if os.path.exists(self.tf_model_dir):
+        if not os.path.exists(self.tf_model_dir):
+            print("make directory: '{:s}'".format(self.tf_model_dir))
             os.makedirs(self.tf_model_dir)
         if not os.path.exists(self.graph_dir):
             print("make directory: '{:s}'".format(self.graph_dir))
@@ -31,46 +34,52 @@ class KerasToNCSGraph(object):
 
         self.output_layer_name = ""
         self.input_layer_name = ""
+        self.wait = Spinner()
+        self.lock = threading.Lock()
 
     def set_keras_model_file(self, model_file='', weights_file=None, view_summary=False):
-        """Import json file and weights' file.
-        :param model_file (str) path to file model
-            Import json file and weights' file.
-        :param model_file (str) path to file json
-        :param weights_file (str) path to file h5
         """
+        Import trained model files.
+        :param model_file (str) path to file model import 'json' or model ('.model', '.h5')
+        :param weights_file (str) path to file h5 import weights model
+        :param view_summary (bool) print on screen the model's summary
+        """
+
         if os.path.exists(model_file) and weights_file is None:
+            self.wait.start()
+            self.lock.acquire()
             if model_file.endswith((".h5", ".model")):
                 self.model_ = load_model(model_file)
+            self.lock.release()
+            self.wait.stop()
+            print("Done")
 
         if os.path.exists(model_file) and weights_file is not None:
+            self.wait.start()
+            self.lock.acquire()
             if os.path.exists(model_file) and model_file.endswith(".json"):
                 with open(model_file, 'r') as model_input:
                     model = model_input.read()
                     self.model_ = model_from_json(model)
             if os.path.exists(weights_file) and weights_file.endswith(".h5"):
                 self.model_.load_weights(weights_file)  # load weights:
+            self.lock.release()
+            self.wait.stop()
+            print("Done")
 
         if view_summary:
             print('Model Summary:', self.model_.summary())  # print summary model
 
     def convertGraph(self, numoutputs=1, prefix='k2tfout', name='model.pb'):
-        '''
+        """
         Converts an HD5F file to a .pb file for use with Tensorflow.
-        Args:
-            modelPath (str): path to the .h5 file
-               outdir (str): path to the output directory
-           numoutputs (int):
-               prefix (str): the prefix of the output aliasing
-                 name (str):
-        Returns:
-            None
-        '''
-
+        :param  numoutputs (int)
+        :param  prefix (str) the prefix of the output aliasing
+        :param  name (str) the name of ProtocolBuffer file
+        """
+        print("Start conversion in Protocol Buffer")
         kbe.set_learning_phase(0)
-
         net_model = self.model_
-
         # Alias the outputs in the model - this sometimes makes them easier to access in TF
         pred = [None] * numoutputs
         pred_node_names = [None] * numoutputs
@@ -93,26 +102,35 @@ class KerasToNCSGraph(object):
         graph_io.write_graph(constant_graph, self.tf_model_dir, name, as_text=False)
         print('Saved the constant graph (ready for inference) at: ', os.path.join(self.tf_model_dir, name))
         self.tf_model_ = os.path.join(self.tf_model_dir, name)
+        # compile
+        self.__compile_graph_model()
 
-    def compile_graph_model(self, name_graph_model_file='model'):
-        """Compile graph model for Neural Compute Stick (Intel Movidius) starting from Tensorflow model."""
-
+    def __compile_graph_model(self, name_graph_model_file='model'):
+        """
+        Compile graph model for Neural Compute Stick (Intel Movidius) starting from Tensorflow model.
+        :param name_graph_model_file (str) assign name of model exported
+        """
         graph_model = self.graph_dir
-        graph_model += '/' + name_graph_model_file + '.graph'  # complete graph file model (path + name)
+        graph_model += name_graph_model_file + '.graph'  # complete graph file model (path + name)
+        # assemble command
         cmd = 'mvNCCompile {0} -s 12 -in {1} -on {2} -o {3}'.format(self.tf_model_, 'input_1',
-                                                              self.output_layer_name,
-                                                              graph_model)
+                                                                    self.output_layer_name,
+                                                                    graph_model)
         print(cmd)
         # start compile
         os.system(cmd)
 
     def __delete_tmp_directory(self):
-        for dir in [self.tf_model_dir, self.base_dir]:
-            shutil.rmtree(dir, ignore_errors=True)
+        if os.path.exists(self.base_dir):
+            print("removing previous temporary files")
+            shutil.rmtree(self.base_dir, ignore_errors=True)
+
+    def __del__(self):
+        del self.wait
+        del self.lock
 
 
 if __name__ == '__main__':
     t = KerasToNCSGraph()
-    t.set_keras_model_file('facerecognition.model')
+    t.set_keras_model_file('inceptionv3-transfer-learning.model')
     t.convertGraph()
-    t.compile_graph_model()
