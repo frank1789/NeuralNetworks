@@ -132,7 +132,7 @@ class FaceRecognition(object):
             validation_steps=self.m_num_validate_samples // self.m_batch_size,
             class_weight="auto")
         # Evaluate the model
-        #self.m_model.evaluate_generator(generator=self.m_valid_generator)
+        # self.m_model.evaluate_generator(generator=self.m_valid_generator)
 
     def predict_output(self):
         """"""
@@ -165,7 +165,6 @@ class FaceRecognition(object):
             else:
                 self.__spin.stop()
                 raise ValueError("Invalid extension, supported extensions are: '.h5', '.model'")
-                sys.exit()
 
         elif os.path.exists(filename) and weights_file is not None:
             if filename.endswith('.json') and weights_file.endswith('.h5'):
@@ -181,11 +180,9 @@ class FaceRecognition(object):
             else:
                 self.__spin.stop()
                 raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), (filename, weights_file))
-                sys.exit()
 
         else:
             raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), filename)
-            sys.exit()
 
         print(self.m_model.summary())
         return self.m_model
@@ -320,9 +317,7 @@ class FaceRecognition(object):
                 x = (Convolution2D(4096, (1, 1), activation='relu', name="fc2"))(x)
                 x = (Dropout(0.5))(x)
                 x = (Convolution2D(2622, (1, 1)))(x)
-                x = (Flatten())(x)
-                x = Activation('softmax')(x)
-                x = Dense(Number_FC_Neurons, activation='relu')(x)
+                x = Flatten()(x)
             except ValueError as err:
                 message = "ValueError:Input size must be at least 48 x 48;"
                 message += " got `input_shape=" + str(self.m_train_generator.image_shape) + "'"
@@ -334,17 +329,15 @@ class FaceRecognition(object):
             self.m_model_base_ = model_base.input
             # classification block
             x = GlobalAveragePooling2D()(output)
-            x = Dense(Number_FC_Neurons, activation='relu')(x)  # new FC layer, random init
 
         elif pretrained_model == 'vgg16' or pretrained_model == 'vgg19':
             model_base, output = self.get_pretrained_model(pretrained_model, weights)
             self.m_model_base_ = model_base.input
             # classification block
             x = GlobalAveragePooling2D()(output)
-            x = Dense(Number_FC_Neurons, activation='relu')(x)
-            x = Activation('softmax')(x)
 
         # common output layer - predictions
+        x = Dense(Number_FC_Neurons, activation='relu')(x)
         predictions = Dense(self.m_num_classes, activation='softmax', name="predictions")(x)
         # create model instance
         self.m_model = Model(inputs=self.m_model_base_, outputs=predictions)
@@ -362,7 +355,7 @@ class FaceRecognition(object):
                     layer.trainable = False
 
         # compile the  model
-        self.m_model.compile(optimizer=Adam(lr=self.m_lr,),
+        self.m_model.compile(optimizer=Adam(lr=self.m_lr, ),
                              loss='categorical_crossentropy', metrics=['accuracy'])
 
         # print model structure diagram
@@ -371,7 +364,7 @@ class FaceRecognition(object):
 
 
 if __name__ == '__main__':
-    test = FaceRecognition(epochs=10, learning_rate=0.01, batch_size=48, image_width=48, image_height=48)
+    test = FaceRecognition(epochs=5, learning_rate=0.001, batch_size=48, image_width=48, image_height=48)
     test.create_img_generator()
     test.set_train_generator(
         train_folder=r'./dataset/simpsons_dataset')
@@ -385,7 +378,7 @@ if __name__ == '__main__':
                                     num_trainable_parameters=0.5)
     # train fit
     test.train_and_fit_model()
-    #test.predict_class_indices()  # todo check this method
-    #test.predict_output() # todo check this method
+    # test.predict_class_indices()  # todo check this method
+    # test.predict_output() # todo check this method
     test.save_model_to_file(name='vgg16_adam_test_2', extension='.json')
     quit(0)
