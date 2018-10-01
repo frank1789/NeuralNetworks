@@ -33,8 +33,6 @@ class FaceRecognition(object):
     m_num_train_samples = 0
     m_num_classes = 0
     m_num_validate_samples = 0
-    # attribute model prediction
-    prediction_ = None
     m_model_base_ = None
 
     def __init__(self, epochs, batch_size, image_width=224, image_height=224):
@@ -216,19 +214,19 @@ class FaceRecognition(object):
         :return output (obj) pre-trained NN weights
         """
         if pretrained_model == 'inception':
-            model_base = InceptionV3(include_top=False, weights=weights)
+            model_base = InceptionV3(include_top=False, weights=weights, input_shape=self.m_train_generator.image_shape)
             output = model_base.output
         elif pretrained_model == 'xception':
-            model_base = Xception(include_top=False, weights=weights)
+            model_base = Xception(include_top=False, weights=weights, input_shape=self.m_train_generator.image_shape)
             output = (Flatten())(model_base.output)
         elif pretrained_model == 'resnet50':
-            model_base = ResNet50(include_top=False, weights=weights)
+            model_base = ResNet50(include_top=False, weights=weights, input_shape=self.m_train_generator.image_shape)
             output = Flatten()(model_base.output)
         elif pretrained_model == 'vgg16':
-            model_base = VGG16(include_top=False, weights=weights)
+            model_base = VGG16(include_top=False, weights=weights, input_shape=self.m_train_generator.image_shape)
             output = model_base.output
         elif pretrained_model == 'vgg19':
-            model_base = VGG19(include_top=False, weights=weights)
+            model_base = VGG19(include_top=False, weights=weights, input_shape=self.m_train_generator.image_shape)
             output = model_base.output
         return model_base, output
 
@@ -297,12 +295,11 @@ class FaceRecognition(object):
                 x = (Convolution2D(2622, (1, 1)))(x)
                 x = (Flatten())(x)
                 x = (Activation('softmax'))(x)
-                self.prediction_ = x
             except ValueError as err:
                 message = "ValueError:Input size must be at least 48 x 48;"
                 message += " got `input_shape=({:d},{:d},{:d})`".format(3, self.m_image_width, self.m_image_height)
                 print(message)
-                sys.exit(err)
+                raise err
 
         elif pretrained_model == 'inception' or pretrained_model == 'xception':
             model_base, output = self.get_pretrained_model(pretrained_model, weights)
@@ -310,7 +307,7 @@ class FaceRecognition(object):
             # classification block
             x = GlobalAveragePooling2D()(output)
             x = Dense(Number_FC_Neurons, activation='relu')(x)  # new FC layer, random init
-            self.prediction_ = x
+
 
         elif pretrained_model == 'vgg16' or pretrained_model == 'vgg19':
             model_base, output = self.get_pretrained_model(pretrained_model, weights)
@@ -318,10 +315,10 @@ class FaceRecognition(object):
             # classification block
             x = GlobalAveragePooling2D()(output)
             x = (Activation('softmax'))(x)
-            self.prediction_ = x
+
 
         # output layer - predictions
-        predictions = (Dense(self.m_num_classes, activation='softmax', name="predictions"))(self.prediction_)
+        predictions = (Dense(self.m_num_classes, activation='softmax', name="predictions"))(x)
         # create model instance
         self.m_model = Model(inputs=self.m_model_base_, outputs=predictions)
 
