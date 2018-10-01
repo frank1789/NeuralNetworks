@@ -208,7 +208,6 @@ class FaceRecognition(object):
             with open(filename, "w") as json_file:
                 json_file.write(model_json)
             # save weights
-
             self.m_model.save_weights(os.path.join(self.pathdir, (name + '_weights.h5')))
 
         if export_image:
