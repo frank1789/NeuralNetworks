@@ -7,7 +7,7 @@ from utilityfunction import Spinner
 import errno
 from keras.models import Model, model_from_json, load_model
 from keras.layers import Dropout, Flatten, Dense, Input
-from keras.optimizers import SGD
+from keras.optimizers import SGD, Adam
 from keras.layers.convolutional import ZeroPadding2D
 from keras.layers import MaxPooling2D, Convolution2D, Activation, GlobalAveragePooling2D
 from keras.applications import VGG16, VGG19, InceptionV3, Xception, ResNet50
@@ -132,7 +132,7 @@ class FaceRecognition(object):
             validation_steps=self.m_num_validate_samples // self.m_batch_size,
             class_weight="auto")
         # Evaluate the model
-        self.m_model.evaluate_generator(generator=self.m_valid_generator)
+        #self.m_model.evaluate_generator(generator=self.m_valid_generator)
 
     def predict_output(self):
         """"""
@@ -321,7 +321,8 @@ class FaceRecognition(object):
                 x = (Dropout(0.5))(x)
                 x = (Convolution2D(2622, (1, 1)))(x)
                 x = (Flatten())(x)
-                x = (Activation('softmax'))(x)
+                x = Activation('softmax')(x)
+                x = Dense(Number_FC_Neurons, activation='relu')(x)
             except ValueError as err:
                 message = "ValueError:Input size must be at least 48 x 48;"
                 message += " got `input_shape=" + str(self.m_train_generator.image_shape) + "'"
@@ -340,13 +341,13 @@ class FaceRecognition(object):
             self.m_model_base_ = model_base.input
             # classification block
             x = GlobalAveragePooling2D()(output)
-            x = (Activation('softmax'))(x)
+            x = Dense(Number_FC_Neurons, activation='relu')(x)
+            x = Activation('softmax')(x)
 
-        # output layer - predictions
-        predictions = (Dense(self.m_num_classes, activation='softmax', name="predictions"))(x)
+        # common output layer - predictions
+        predictions = Dense(self.m_num_classes, activation='softmax', name="predictions")(x)
         # create model instance
         self.m_model = Model(inputs=self.m_model_base_, outputs=predictions)
-
         # Layers - set trainable parameters
         print("Total layers: {:10d}".format(len(self.m_model.layers)))
         if trainable_parameters:
@@ -361,7 +362,7 @@ class FaceRecognition(object):
                     layer.trainable = False
 
         # compile the  model
-        self.m_model.compile(optimizer=SGD(lr=self.m_lr, momentum=0.9),
+        self.m_model.compile(optimizer=Adam(lr=self.m_lr,),
                              loss='categorical_crossentropy', metrics=['accuracy'])
 
         # print model structure diagram
@@ -370,7 +371,7 @@ class FaceRecognition(object):
 
 
 if __name__ == '__main__':
-    test = FaceRecognition(epochs=1, batch_size=32, image_width=139, image_height=139)
+    test = FaceRecognition(epochs=10, learning_rate=0.01, batch_size=48, image_width=48, image_height=48)
     test.create_img_generator()
     test.set_train_generator(
         train_folder=r'./dataset/simpsons_dataset')
@@ -380,11 +381,11 @@ if __name__ == '__main__':
         test_folder=r'./dataset/kaggle_simpson_testset')
 
     # prepare the model
-    test.set_face_recognition_model(pretrained_model='inception', weights='imagenet', trainable_parameters=True,
+    test.set_face_recognition_model(pretrained_model='vgg16', weights='imagenet', trainable_parameters=True,
                                     num_trainable_parameters=0.5)
     # train fit
     test.train_and_fit_model()
-    test.predict_class_indices()
-    test.predict_output()
-    test.save_model()
+    #test.predict_class_indices()  # todo check this method
+    #test.predict_output() # todo check this method
+    test.save_model_to_file(name='vgg16_adam_test_2', extension='.json')
     quit(0)
