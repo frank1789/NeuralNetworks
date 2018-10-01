@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
 from utilityfunction import Spinner
 import errno
 from keras.models import Model, model_from_json, load_model
@@ -36,9 +35,10 @@ class FaceRecognition(object):
     m_num_validate_samples = 0
     m_model_base_ = None
 
-    def __init__(self, epochs, batch_size, image_width=224, image_height=224):
+    def __init__(self, epochs, batch_size, learning_rate, image_width=224, image_height=224):
         self.m_epochs = epochs
         self.m_batch_size = batch_size
+        self.m_lr = learning_rate
         self.m_image_width = image_width
         self.m_image_height = image_height
         self.pathdir = './Model/'
@@ -123,11 +123,13 @@ class FaceRecognition(object):
     def train_and_fit_model(self):
         """Train the model"""
         # Fit
-        STEP_SIZE_TRAIN = self.m_num_train_samples // self.m_batch_size
-        STEP_SIZE_VALID = self.m_num_validate_samples // self.m_batch_size
-        self.m_model.fit_generator(self.m_train_generator, steps_per_epoch=STEP_SIZE_TRAIN,
-                                   validation_data=self.m_valid_generator, validation_steps=STEP_SIZE_VALID,
-                                   epochs=self.m_epochs, class_weight="auto")
+        self.m_model.fit_generator(
+            self.m_train_generator,
+            epochs=self.m_epochs,
+            steps_per_epoch=self.m_num_train_samples // self.m_batch_size,
+            validation_data=self.m_valid_generator,
+            validation_steps=self.m_num_validate_samples // self.m_batch_size,
+            class_weight="auto")
         # Evaluate the model
         self.m_model.evaluate_generator(generator=self.m_valid_generator)
 
@@ -149,7 +151,7 @@ class FaceRecognition(object):
         Import trained model store as 1 file ('.model', '.h5')
         Or import the schema model in format 'json' and weights's file in format h5.
         :param filename (str) pass path model file
-        :parma weights_file(str) pass path weights file
+        :param weights_file(str) pass path weights file
         """
         if os.path.exists(filename):
             print("Loading model, please wait")
@@ -217,28 +219,32 @@ class FaceRecognition(object):
         self.__spin.stop()
         print("Done")
 
-    def get_pretrained_model(self, pretrained_model, weights='imagenet'):
+    def get_pretrained_model(self, pretrained_model, weights='imagenet', include_top=False):
         """
         This method allows to define already existing neural networks and to export their model as a starting point.
         :param pretrained_model (string) set name of neural network as inception, vgg16 ecc.
         :param weights (string) set weights of NN
+        :param include_top (bool)
         :return model_base (obj) the model select
         :return output (obj) pre-trained NN weights
         """
         if pretrained_model == 'inception':
-            model_base = InceptionV3(include_top=False, weights=weights, input_shape=self.m_train_generator.image_shape)
+            model_base = InceptionV3(include_top=include_top, weights=weights,
+                                     input_shape=self.m_train_generator.image_shape)
             output = model_base.output
         elif pretrained_model == 'xception':
-            model_base = Xception(include_top=False, weights=weights, input_shape=self.m_train_generator.image_shape)
+            model_base = Xception(include_top=include_top, weights=weights,
+                                  input_shape=self.m_train_generator.image_shape)
             output = (Flatten())(model_base.output)
         elif pretrained_model == 'resnet50':
-            model_base = ResNet50(include_top=False, weights=weights, input_shape=self.m_train_generator.image_shape)
+            model_base = ResNet50(include_top=include_top, weights=weights,
+                                  input_shape=self.m_train_generator.image_shape)
             output = Flatten()(model_base.output)
         elif pretrained_model == 'vgg16':
-            model_base = VGG16(include_top=False, weights=weights, input_shape=self.m_train_generator.image_shape)
+            model_base = VGG16(include_top=include_top, weights=weights, input_shape=self.m_train_generator.image_shape)
             output = model_base.output
         elif pretrained_model == 'vgg19':
-            model_base = VGG19(include_top=False, weights=weights, input_shape=self.m_train_generator.image_shape)
+            model_base = VGG19(include_top=include_top, weights=weights, input_shape=self.m_train_generator.image_shape)
             output = model_base.output
         return model_base, output
 
@@ -309,7 +315,7 @@ class FaceRecognition(object):
                 x = (Activation('softmax'))(x)
             except ValueError as err:
                 message = "ValueError:Input size must be at least 48 x 48;"
-                message += " got `input_shape=({:d},{:d},{:d})`".format(3, self.m_image_width, self.m_image_height)
+                message += " got `input_shape=" + str(self.m_train_generator.image_shape) + "'"
                 print(message)
                 raise err
 
@@ -320,14 +326,12 @@ class FaceRecognition(object):
             x = GlobalAveragePooling2D()(output)
             x = Dense(Number_FC_Neurons, activation='relu')(x)  # new FC layer, random init
 
-
         elif pretrained_model == 'vgg16' or pretrained_model == 'vgg19':
             model_base, output = self.get_pretrained_model(pretrained_model, weights)
             self.m_model_base_ = model_base.input
             # classification block
             x = GlobalAveragePooling2D()(output)
             x = (Activation('softmax'))(x)
-
 
         # output layer - predictions
         predictions = (Dense(self.m_num_classes, activation='softmax', name="predictions"))(x)
@@ -348,7 +352,7 @@ class FaceRecognition(object):
                     layer.trainable = False
 
         # compile the  model
-        self.m_model.compile(optimizer=SGD(lr=0.0001, momentum=0.9),
+        self.m_model.compile(optimizer=SGD(lr=self.m_lr, momentum=0.9),
                              loss='categorical_crossentropy', metrics=['accuracy'])
 
         # print model structure diagram
