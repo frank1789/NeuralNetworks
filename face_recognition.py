@@ -3,6 +3,7 @@
 
 import os
 import sys
+from utilityfunction import Spinner
 import errno
 from keras.models import Model, model_from_json, load_model
 from keras.layers import Dropout, Flatten, Dense, Input
@@ -41,6 +42,7 @@ class FaceRecognition(object):
         self.m_image_width = image_width
         self.m_image_height = image_height
         self.pathdir = './Model/'
+        self.__spin = Spinner()
 
     @staticmethod
     # Get count of number of files in this folder and all sub-folders
@@ -150,6 +152,8 @@ class FaceRecognition(object):
         :parma weights_file(str) pass path weights file
         """
         if os.path.exists(filename):
+            print("Loading model, please wait")
+            self.__spin.start()
             # load entire model
             if filename.endswith(('.model', '.h5')):
                 self.m_model = load_model(filename)
@@ -158,6 +162,8 @@ class FaceRecognition(object):
 
         elif os.path.exists(filename) and weights_file is not None:
             if filename.endswith('.json') and weights_file.endswith('.h5'):
+                print("Loading model, please wait")
+                self.__spin.start()
                 # Model reconstruction from JSON file
                 with open(filename, 'r') as f:
                     self.m_model = model_from_json(f.read())
@@ -168,7 +174,8 @@ class FaceRecognition(object):
 
         else:
             raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), filename)
-
+        self.__spin.stop()
+        print("Done")
         print(self.m_model.summary())
 
     def save_model_to_file(self, name='model', extension='.h5', export_image=False):
@@ -179,6 +186,8 @@ class FaceRecognition(object):
         :param extension (str) assign file exstension
         :param export_image (bool) generate figure schema model
         """
+        print("Saving model, please wait")
+        self.__spin.start()
         if not os.path.exists(self.pathdir):
             os.makedirs(self.pathdir)
         # build the namefile
@@ -204,6 +213,9 @@ class FaceRecognition(object):
             image_name = os.path.join(self.pathdir, (name + '.png'))
             # print image of schema model
             plot_model(self.m_model, to_file=image_name, show_layer_names=True, show_shapes=True)
+
+        self.__spin.stop()
+        print("Done")
 
     def get_pretrained_model(self, pretrained_model, weights='imagenet'):
         """
