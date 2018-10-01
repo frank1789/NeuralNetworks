@@ -249,7 +249,7 @@ class FaceRecognition(object):
         if pretrained_model == '':  # use personal model
             try:  # check minimum size image
                 # define input model block
-                x_input = Input((3, self.m_image_width, self.m_image_height))
+                x_input = Input(self.m_train_generator.image_shape)
                 self.m_model_base_ = x_input
                 x = (ZeroPadding2D((1, 1), name="InputLayer"))(x_input)
                 # block 1
