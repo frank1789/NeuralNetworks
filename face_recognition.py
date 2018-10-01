@@ -127,7 +127,7 @@ class FaceRecognition(object):
         STEP_SIZE_VALID = self.m_num_validate_samples // self.m_batch_size
         self.m_model.fit_generator(self.m_train_generator, steps_per_epoch=STEP_SIZE_TRAIN,
                                    validation_data=self.m_valid_generator, validation_steps=STEP_SIZE_VALID,
-                                   epochs=self.m_epochs, class_weight="auto", use_multiprocessing=True)
+                                   epochs=self.m_epochs, class_weight="auto")
         # Evaluate the model
         self.m_model.evaluate_generator(generator=self.m_valid_generator)
 
