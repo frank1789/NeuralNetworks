@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 from utilityfunction import Spinner
 import errno
 from keras.models import Model, model_from_json, load_model
@@ -153,14 +154,18 @@ class FaceRecognition(object):
         :param filename (str) pass path model file
         :param weights_file(str) pass path weights file
         """
-        if os.path.exists(filename):
+        if os.path.exists(filename) and weights_file is None:
             print("Loading model, please wait")
             self.__spin.start()
             # load entire model
             if filename.endswith(('.model', '.h5')):
                 self.m_model = load_model(filename)
+                self.__spin.stop()
+                print("Done")
             else:
+                self.__spin.stop()
                 raise ValueError("Invalid extension, supported extensions are: '.h5', '.model'")
+                sys.exit()
 
         elif os.path.exists(filename) and weights_file is not None:
             if filename.endswith('.json') and weights_file.endswith('.h5'):
@@ -171,21 +176,26 @@ class FaceRecognition(object):
                     self.m_model = model_from_json(f.read())
                 # Load weights into the new model
                 self.m_model.load_weights(weights_file)
+                self.__spin.stop()
+                print("Done")
             else:
+                self.__spin.stop()
                 raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), (filename, weights_file))
+                sys.exit()
 
         else:
             raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), filename)
-        self.__spin.stop()
-        print("Done")
+            sys.exit()
+
         print(self.m_model.summary())
+        return self.m_model
 
     def save_model_to_file(self, name='model', extension='.h5', export_image=False):
         """
         Export trained model store as 1 file ('.model', '.h5')
         or export the schema model in format 'json' and weights's file in format h5.
         :param name (str) assign file name
-        :param extension (str) assign file exstension
+        :param extension (str) assign file extension
         :param export_image (bool) generate figure schema model
         """
         print("Saving model, please wait")
