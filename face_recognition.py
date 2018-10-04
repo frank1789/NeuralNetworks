@@ -15,7 +15,7 @@ from keras.applications.imagenet_utils import preprocess_input
 from keras.preprocessing.image import ImageDataGenerator
 from keras.utils import plot_model
 from keras import backend as kbe
-import numpy as np
+from staticsanalysis import HistoryAnalysis
 
 # suppress warning and error message tf
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -24,37 +24,41 @@ kbe.set_image_dim_ordering('tf')
 
 
 class FaceRecognition(object):
-    m_labels = None
-    m_pred = None
-    m_predictions = None
     m_train_generator = None
     m_valid_generator = None
-    m_test_generator = None
     m_model = None
     m_num_train_samples = 0
     m_num_classes = 0
     m_num_validate_samples = 0
     m_model_base_ = None
 
-    def __init__(self, epochs, batch_size, learning_rate, image_width=224, image_height=224):
+    def __init__(self, epochs, batch_size, learning_rate=0.0001, image_width=224, image_height=224):
         self.m_epochs = epochs
         self.m_batch_size = batch_size
         self.m_lr = learning_rate
         self.m_image_width = image_width
         self.m_image_height = image_height
-        self.pathdir = './Model/'
+        self.__pathdir = './Model/'
         self.__spin = Spinner()
 
     @staticmethod
-    # Get count of number of files in this folder and all sub-folders
     def get_num_files(path):
+        """
+        Get count of number of files in this folder and all sub-folders
+        :param path: (str) path folder
+        :return: (int)
+        """
         if not os.path.exists(path):
             return 0
         return sum([len(files) for r, d, files in os.walk(path)])
 
     @staticmethod
-    # Get count of number of sub-folders directly below the folder in path
     def get_num_subfolders(path):
+        """
+        Get count of number of sub-folders directly below the folder in path.
+        :param path: (str) path folder
+        :return: (int)
+        """
         if not os.path.exists(path):
             return 0
         return sum([len(d) for r, d, files in os.walk(path)])
@@ -66,13 +70,13 @@ class FaceRecognition(object):
         Define image generators that will variations of image with the image rotated slightly, shifted up, down,
         left, or right, sheared, zoomed in, or flipped horizontally on the vertical axis (ie. person looking to the
         left ends up looking to the right).
-        :param rotation_range (int) generates a rotation of the image of the specify value
-        :param width_shift_range (float) generates a displacement of the image of the specify value
-        :param height_shift_range (float) generates a displacement of the image of the specify value
-        :param shear_range (float) generates a cut-out of the image of the specify value
-        :param zoom_range (float) generates a magnification of the image of the specify value
-        :param horizontal_flip (bool) enable flips the image horizontally
-        :return: ImageDataGenerator (object)
+        :param rotation_range: (int) generates a rotation of the image of the specify value
+        :param width_shift_range: (float) generates a displacement of the image of the specify value
+        :param height_shift_range: (float) generates a displacement of the image of the specify value
+        :param shear_range: (float) generates a cut-out of the image of the specify value
+        :param zoom_range: (float) generates a magnification of the image of the specify value
+        :param horizontal_flip: (bool) enable flips the image horizontally
+        :return ImageDataGenerator: (object)
         """
         return ImageDataGenerator(
             preprocessing_function=preprocess_input,
@@ -84,75 +88,56 @@ class FaceRecognition(object):
             horizontal_flip=horizontal_flip
         )
 
-    def set_train_generator(self, train_folder):
-        """Connect the image generator to a folder contains the source images the image generator alters."""
+    def set_train_generator(self, train_dir):
+        """
+        Connect the image generator to a folder contains the source images the image generator alters.
+        :param train_dir: (str) containing the path to the folder
+        """
         #   Training image generator
-        self.m_num_train_samples = self.get_num_files(train_folder)
-        self.m_num_classes = self.get_num_subfolders(train_folder)
+        self.m_num_train_samples = self.get_num_files(train_dir)
+        self.m_num_classes = self.get_num_subfolders(train_dir)
         train_generator = self.create_img_generator()
         self.m_train_generator = train_generator.flow_from_directory(
-            directory=train_folder,
+            directory=train_dir,
             target_size=(self.m_image_width, self.m_image_height),
             batch_size=self.m_batch_size,
             seed=42  # set seed for reproducibility
         )
 
-    def set_valid_generator(self, validate_folder):
-        """Validation image generator."""
-        self.m_num_validate_samples = self.get_num_files(validate_folder)
+    def set_valid_generator(self, valid_dir):
+        """
+        Connect the image generator to a folder contains the source images the image generator alters.
+        :param train_folder: (str) containing the path folder
+        """
+        self.m_num_validate_samples = self.get_num_files(valid_dir)
         valid_generator = self.create_img_generator()
         self.m_valid_generator = valid_generator.flow_from_directory(
-            directory=validate_folder,
+            directory=valid_dir,
             target_size=(self.m_image_width, self.m_image_height),
             batch_size=self.m_batch_size,
-            class_mode="categorical",
             seed=42  # set seed for reproducibility
-        )
-
-    def set_test_generator(self, test_folder):
-        test_generator = self.create_img_generator()
-        self.m_test_generator = test_generator.flow_from_directory(
-            directory=test_folder,
-            target_size=(self.m_image_width, self.m_image_height),
-            color_mode="rgb",
-            batch_size=1,
-            class_mode=None,
-            shuffle=False,
-            seed=42
         )
 
     def train_and_fit_model(self):
         """Train the model"""
         # Fit
-        self.m_model.fit_generator(
+        # checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=0, save_best_only=True, mode='max')
+        # callbacks_list = [LearningRateScheduler(lr_schedule), checkpoint]
+        history = self.m_model.fit_generator(
             self.m_train_generator,
             epochs=self.m_epochs,
             steps_per_epoch=self.m_num_train_samples // self.m_batch_size,
             validation_data=self.m_valid_generator,
-            validation_steps=self.m_num_validate_samples // self.m_batch_size,
-            class_weight="auto")
-        # Evaluate the model
-        # self.m_model.evaluate_generator(generator=self.m_valid_generator)
+            validation_steps=self.m_num_validate_samples // self.m_batch_size, shuffle=True, class_weight='auto')
 
-    def predict_output(self):
-        """"""
-        self.m_test_generator.reset()
-        self.m_pred = self.m_model.predict_generator(self.m_test_generator, verbose=0)
-        # need to reset the test_generator before whenever, call the predict_generator.This is important,
-        # if you forget to reset the test_generator you will get outputs in a weird order.
-
-    def predict_class_indices(self):
-        predicted_class_indices = np.argmax(self.m_pred, axis=1)
-        labels = self.m_train_generator.class_indices
-        self.m_labels = dict((v, k) for k, v in labels.items())
-        self.m_predictions = [labels[k] for k in predicted_class_indices]
+        plotter = HistoryAnalysis.plot_history(history, 'test')
 
     def load_model_from_file(self, filename, weights_file=None):
         """
         Import trained model store as 1 file ('.model', '.h5')
         Or import the schema model in format 'json' and weights's file in format h5.
-        :param filename (str) pass path model file
-        :param weights_file(str) pass path weights file
+        :param filename: (str) pass path model file
+        :param weights_file: (str) pass path weights file
         """
         if os.path.exists(filename) and weights_file is None:
             print("Loading model, please wait")
@@ -185,23 +170,23 @@ class FaceRecognition(object):
             raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), filename)
 
         print(self.m_model.summary())
-        return self.m_model
 
     def save_model_to_file(self, name='model', extension='.h5', export_image=False):
         """
         Export trained model store as 1 file ('.model', '.h5')
         or export the schema model in format 'json' and weights's file in format h5.
-        :param name (str) assign file name
-        :param extension (str) assign file extension
-        :param export_image (bool) generate figure schema model
+        :param name: (str) assign file name
+        :param extension: (str) assign file extension
+        :param export_image: (bool) generate figure schema model
         """
         print("Saving model, please wait")
         self.__spin.start()
-        if not os.path.exists(self.pathdir):
-            os.makedirs(self.pathdir)
-        # build the namefile
-        filename = os.path.join(self.pathdir, (name + extension))
+        if not os.path.exists(self.__pathdir):
+            os.makedirs(self.__pathdir)
+        # build the name-file
+        filename = os.path.join(self.__pathdir, (name + extension))
         if extension not in ['.h5', '.model', '.json']:
+            self.__spin.stop()
             raise ValueError("Invalid extension, supported extensions are: '.h5', '.model', '.json'")
         if extension == '.h5':
             # export complete model with weights
@@ -215,10 +200,10 @@ class FaceRecognition(object):
             with open(filename, "w") as json_file:
                 json_file.write(model_json)
             # save weights
-            self.m_model.save_weights(os.path.join(self.pathdir, (name + '_weights.h5')))
+            self.m_model.save_weights(os.path.join(self.__pathdir, (name + '_weights.h5')))
 
         if export_image:
-            image_name = os.path.join(self.pathdir, (name + '.png'))
+            image_name = os.path.join(self.__pathdir, (name + '.png'))
             # print image of schema model
             plot_model(self.m_model, to_file=image_name, show_layer_names=True, show_shapes=True)
 
@@ -228,11 +213,11 @@ class FaceRecognition(object):
     def get_pretrained_model(self, pretrained_model, weights='imagenet', include_top=False):
         """
         This method allows to define already existing neural networks and to export their model as a starting point.
-        :param pretrained_model (string) set name of neural network as inception, vgg16 ecc.
-        :param weights (string) set weights of NN
-        :param include_top (bool)
-        :return model_base (obj) the model select
-        :return output (obj) pre-trained NN weights
+        :param pretrained_model: (string) set name of neural network as inception, vgg16 ecc.
+        :param weights: (string) set weights of NN
+        :param include_top: (bool)
+        :return model_base: (obj) the model select
+        :return output: (obj) pre-trained NN weights
         """
         if pretrained_model == 'inception':
             model_base = InceptionV3(include_top=include_top, weights=weights,
@@ -254,7 +239,7 @@ class FaceRecognition(object):
             output = model_base.output
         return model_base, output
 
-    def set_face_recognition_model(self, pretrained_model='', weights='', Number_FC_Neurons=1024,
+    def set_face_recognition_model(self, pretrained_model='', weights='', include_top=False, Number_FC_Neurons=1024,
                                    trainable_parameters=False, num_trainable_parameters=1.0):
         """
         It allows to use different neural networks of convulsion, the first is based on the face recognition model
@@ -262,15 +247,14 @@ class FaceRecognition(object):
         Instead, those defined succinctly are the expansion of existing networks with the addition of the custom
         classifier. Furthermore, it is possible to specify whether to train all parameters or just some parameters,
         simply setting a dimensionless range between 0 and 1.0.
-        :param pretrained_model
-        :param weights
-        :param Number_FC_Neurons
-        :param trainable_parameters
-        :param num_trainable_parameters
-        :return self(object)
+        :param pretrained_model:
+        :param weights:
+        :param Number_FC_Neurons:
+        :param trainable_parameters:
+        :param num_trainable_parameters:
+        :return self(object):
         """
-
-        if pretrained_model == '':  # use personal model
+        if pretrained_model == '':  # use own custom model
             try:  # check minimum size image
                 # define input model block
                 x_input = Input(self.m_train_generator.image_shape)
@@ -325,13 +309,13 @@ class FaceRecognition(object):
                 raise err
 
         elif pretrained_model == 'inception' or pretrained_model == 'xception':
-            model_base, output = self.get_pretrained_model(pretrained_model, weights)
+            model_base, output = self.get_pretrained_model(pretrained_model, weights, include_top)
             self.m_model_base_ = model_base.input
             # classification block
             x = GlobalAveragePooling2D()(output)
 
         elif pretrained_model == 'vgg16' or pretrained_model == 'vgg19':
-            model_base, output = self.get_pretrained_model(pretrained_model, weights)
+            model_base, output = self.get_pretrained_model(pretrained_model, weights, include_top)
             self.m_model_base_ = model_base.input
             # classification block
             x = GlobalAveragePooling2D()(output)
