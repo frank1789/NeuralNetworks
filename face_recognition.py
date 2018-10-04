@@ -345,30 +345,33 @@ class FaceRecognition(object):
                     layer.trainable = False
 
         # compile the  model
-        self.m_model.compile(optimizer=Adam(lr=self.m_lr, ),
+        self.m_model.compile(optimizer=SGD(lr=0.001, momentum=0.9),
                              loss='categorical_crossentropy', metrics=['accuracy'])
 
         # print model structure diagram
         print(self.m_model.summary())
         return self
 
+    def __del__(self):
+        del self.m_model
+        del self.m_model_base_
+        del self.m_train_generator
+        del self.__spin
+
 
 if __name__ == '__main__':
-    test = FaceRecognition(epochs=5, learning_rate=0.001, batch_size=48, image_width=48, image_height=48)
+    train_folder = r'/Users/francesco/PycharmProjects/KerasTest/data/train'
+    valid_folder = r'/Users/francesco/PycharmProjects/KerasTest/data/validate'
+    test = FaceRecognition(epochs=10, batch_size=32, image_width=48, image_height=48)
     test.create_img_generator()
     test.set_train_generator(
-        train_folder=r'./dataset/simpsons_dataset')
+        train_dir=train_folder)
     test.set_valid_generator(
-        validate_folder=r'./dataset/simpsons_dataset')
-    test.set_test_generator(
-        test_folder=r'./dataset/kaggle_simpson_testset')
+        valid_dir=valid_folder)
 
     # prepare the model
-    test.set_face_recognition_model(pretrained_model='vgg16', weights='imagenet', trainable_parameters=True,
-                                    num_trainable_parameters=0.5)
+    test.set_face_recognition_model(pretrained_model='vgg16', weights='imagenet', include_top=False)
+
     # train fit
     test.train_and_fit_model()
-    # test.predict_class_indices()  # todo check this method
-    # test.predict_output() # todo check this method
-    test.save_model_to_file(name='vgg16_adam_test_2', extension='.json')
     quit(0)
