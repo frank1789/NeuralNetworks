@@ -12,7 +12,7 @@ class HistoryAnalysis:
         Collects the history, returned from training the model and creates two charts:
         A plot of accuracy on the training and validation datasets over training epochs.
         A plot of loss on the training and validation datasets over training epochs.
-        :param history: (obj) from keras fit
+        :param history: (dict) from keras fit
         :param namefile: (str) set name save file
         :return: plt(object) plot
         """
