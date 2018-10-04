@@ -118,7 +118,7 @@ class FaceRecognition(object):
             seed=42  # set seed for reproducibility
         )
 
-    def train_and_fit_model(self):
+    def train_and_fit_model(self, figure_history):
         """Train the model"""
         # Fit
         # checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=0, save_best_only=True, mode='max')
