@@ -128,9 +128,11 @@ class FaceRecognition(object):
             epochs=self.m_epochs,
             steps_per_epoch=self.m_num_train_samples // self.m_batch_size,
             validation_data=self.m_valid_generator,
-            validation_steps=self.m_num_validate_samples // self.m_batch_size, shuffle=True, class_weight='auto')
+            validation_steps=self.m_num_validate_samples // self.m_batch_size,
+            shuffle=True,
+            class_weight='auto', )
 
-        plotter = HistoryAnalysis.plot_history(history, 'test')
+        plotter = HistoryAnalysis.plot_history(history, figure_history)
 
     def load_model_from_file(self, filename, weights_file=None):
         """
@@ -313,15 +315,19 @@ class FaceRecognition(object):
             self.m_model_base_ = model_base.input
             # classification block
             x = GlobalAveragePooling2D()(output)
+            x = Dense(Number_FC_Neurons, activation='relu')(x)  # new FC layer, random init
 
         elif pretrained_model == 'vgg16' or pretrained_model == 'vgg19':
             model_base, output = self.get_pretrained_model(pretrained_model, weights, include_top)
             self.m_model_base_ = model_base.input
             # classification block
-            x = GlobalAveragePooling2D()(output)
+            x = Flatten()(output)
+            x = Dense(Number_FC_Neurons, activation='sigmoid')(x)
+            x = Dropout(0.25)(x)
+            x = Dense(Number_FC_Neurons, activation='sigmoid')(x)
+            x = Dropout(0.25)(x)
 
         # common output layer - predictions
-        x = Dense(Number_FC_Neurons, activation='relu')(x)
         predictions = Dense(self.m_num_classes, activation='softmax', name="predictions")(x)
         # create model instance
         self.m_model = Model(inputs=self.m_model_base_, outputs=predictions)
