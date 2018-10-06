@@ -302,20 +302,27 @@ class FaceRecognition(object):
                 x = (Dropout(0.5))(x)
                 x = (Convolution2D(4096, (1, 1), activation='relu', name="fc2"))(x)
                 x = (Dropout(0.5))(x)
-                x = (Convolution2D(2622, (1, 1)))(x)
+                x = (Convolution2D(2048, (1, 1)))(x)
+                # Classification block
                 x = Flatten()(x)
+                x = Activation(activation='softmax')(x)
+
             except ValueError as err:
                 message = "ValueError:Input size must be at least 48 x 48;"
                 message += " got `input_shape=" + str(self.m_train_generator.image_shape) + "'"
                 print(message)
                 raise err
 
-        elif pretrained_model == 'inception' or pretrained_model == 'xception':
+        elif pretrained_model == 'inception':
+            model_base, output = self.get_pretrained_model(pretrained_model, weights, include_top)
+            self.m_model_base_ = model_base.input
+
+        elif pretrained_model == 'xception':
             model_base, output = self.get_pretrained_model(pretrained_model, weights, include_top)
             self.m_model_base_ = model_base.input
             # classification block
-            x = GlobalAveragePooling2D()(output)
-            x = Dense(Number_FC_Neurons, activation='relu')(x)  # new FC layer, random init
+            #x = GlobalAveragePooling2D()(output)
+            x = Dense(Number_FC_Neurons, activation='relu')(output)  # new FC layer, random init
 
         elif pretrained_model == 'vgg16' or pretrained_model == 'vgg19':
             model_base, output = self.get_pretrained_model(pretrained_model, weights, include_top)
