@@ -107,7 +107,7 @@ class FaceRecognition(object):
     def set_valid_generator(self, valid_dir):
         """
         Connect the image generator to a folder contains the source images the image generator alters.
-        :param train_folder: (str) containing the path folder
+        :param valid_dir: (str) containing the path folder
         """
         self.m_num_validate_samples = self.get_num_files(valid_dir)
         valid_generator = self.create_img_generator()
@@ -251,6 +251,7 @@ class FaceRecognition(object):
         simply setting a dimensionless range between 0 and 1.0.
         :param pretrained_model:
         :param weights:
+        :param include_top:
         :param Number_FC_Neurons:
         :param trainable_parameters:
         :param num_trainable_parameters:
