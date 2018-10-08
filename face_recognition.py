@@ -322,7 +322,7 @@ class FaceRecognition(object):
             model_base, output = self.get_pretrained_model(pretrained_model, weights, include_top)
             self.m_model_base_ = model_base.input
             # classification block
-            #x = GlobalAveragePooling2D()(output)
+            # x = GlobalAveragePooling2D()(output)
             x = Dense(Number_FC_Neurons, activation='relu')(output)  # new FC layer, random init
 
         elif pretrained_model == 'vgg16' or pretrained_model == 'vgg19':
