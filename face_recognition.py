@@ -118,7 +118,7 @@ class FaceRecognition(object):
             seed=42  # set seed for reproducibility
         )
 
-    def train_and_fit_model(self, figure_history):
+    def train_and_fit_model(self, figure_history_name):
         """Train the model"""
         # Fit
         # checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=0, save_best_only=True, mode='max')
@@ -132,7 +132,7 @@ class FaceRecognition(object):
             shuffle=True,
             class_weight='auto', )
 
-        plotter = HistoryAnalysis.plot_history(history, figure_history)
+        plotter = HistoryAnalysis.plot_history(history, figure_history_name)
 
     def load_model_from_file(self, filename, weights_file=None):
         """
