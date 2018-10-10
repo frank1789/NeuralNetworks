@@ -14,6 +14,7 @@ Since the development kit provided by intel works in Linux Ubuntu environment it
 
 ### Installation & configuration
 Proceed with the installation of: VirtualBox, extension package, OS.
+
 Once completed, we configure the virtual guest machine as shown in the following pictures.
 
 <div style="text-align:center"><img src ="https://github.com/frank1789/NeuralNetworks/blob/feature/readme/img/fig1.png" /></div>
@@ -39,6 +40,26 @@ pip3 install -r requirements.txt
 NB: if you want run the script with CUDA is necessary install _"tensorflow-gpu"_ by type:
 ```shell
 pip3 install tensorflow-gpu
+```
+
+### Install Intel Movidius sdk
+
+To install NCSDK 2.x you can use the following command to clone the ncsdk2 branch
+```shell
+git clone -b ncsdk2 https://github.com/movidius/ncsdk.git
+```
+
+#### Installation
+
+The provided Makefile helps with installation. Clone the [repository](https://github.com/movidius/ncsdk/tree/ncsdk2) and then run the following command to install the NCSDK:
+```shell
+make install
+```
+#### Examples
+
+The Neural Compute SDK also includes examples. After cloning and running 'make install,' run the following command to install the examples:
+```shell
+make examples
 ```
 
 ## Convert from Keras model to NCS
