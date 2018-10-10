@@ -44,7 +44,7 @@ pip3 install tensorflow-gpu
 
 ### Install Intel Movidius sdk
 
-To install NCSDK 2.x you can use the following command to clone the ncsdk2 branch
+To install NCSDK 2.x you can use the following command to clone the [ncsdk2](https://github.com/movidius/ncsdk/tree/ncsdk2) branch
 ```shell
 git clone -b ncsdk2 https://github.com/movidius/ncsdk.git
 ```
