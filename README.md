@@ -36,7 +36,13 @@ The packages needed are enclosed in file “requirements.txt“, to install, typ
 pip3 install -r requirements.txt
 ```
 
-NB: if you want run the script with CUDA is necessary install "tensorflow-gpu" by type:
+NB: if you want run the script with CUDA is necessary install _"tensorflow-gpu"_ by type:
 ```shell
 pip3 install tensorflow-gpu
+```
+
+## Convert from Keras model to NCS
+Type command:
+```shell
+python3 keras2ncsgraph.py
 ```
