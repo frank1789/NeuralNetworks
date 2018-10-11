@@ -109,11 +109,12 @@ class PrepareDataset(object):
 
 
 class DataSet(PrepareDataset):
+    raw_dataset = None
     def __init__(self, raw_dataset):
         """
         Default constructor of data-set. Once invoked it checks the validity of the examined folder, proceeds in the
         generation of the list of the files of the dataset and of the relative classification.
-        :param raw_dataset (str) path's data-set.
+        :param raw_dataset: (str) path's data-set.
         """
         super(DataSet, self).__init__()
         # check if folder exist, then build the database
@@ -140,6 +141,7 @@ class DataSet(PrepareDataset):
                     +--------+--------+
                     |                 |
                   train            validate
+        :param split_train_validate: (int) indicates how much to divide the training set
         """
         try:
             if 0 < split_train_validate <= 100:
@@ -171,6 +173,10 @@ class DataSet(PrepareDataset):
         self.make_validate_dir(split_train_validate)
 
 
+    def __del__(self):
+        pass
+
+
 class TestSet(PrepareDataset):
     __list_files = []  # list of files in test-set
 
@@ -178,7 +184,7 @@ class TestSet(PrepareDataset):
         """
         Default constructor of data-set. Once invoked it checks the validity of the examined folder, proceeds in the
         generation of the list of the files to validate the model.
-        :param path_testset (str) path's test-set.
+        :param raw_test_set: (str) path's test-set.
         """
         super(TestSet, self).__init__()
         if os.path.exists(raw_test_set):
@@ -204,4 +210,14 @@ if __name__ == '__main__':
     t = TestSet(test)
     t.copy_file()
 
+    del t
+    del d
+
+    datates2 = r'/Users/francesco/Downloads/DogAndCatDataset/train'
+    tets2 = r'/Users/francesco/Downloads/DogAndCatDataset/test'
+
+    d2 = DataSet(datates2)
+    d2.copy_file()
+    t2 =  TestSet(tets2)
+    t2.copy_file()
     quit()
