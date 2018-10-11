@@ -12,6 +12,17 @@ class PrepareDataset(object):
     """
     It is a class that allows to prepare the analysis of the dataset once imported from a source.
     Inside there are methods for manipulating the data-set.
+                                           _
+                                          | \_____
+                                          | data  |
+                                          |_______|
+                                            |
+                            +---------------+-------------------+       
+                            |               |                   |
+                           _              _                    _
+                          | \_____       | \_________         | \_____
+                          | train |      | validate  |        | test  |
+                          |_______|      |___________|        |_______|
     """
 
     _default_train = r'./data/train'  # folder contains the data-set and his sub-folder
@@ -95,44 +106,6 @@ class PrepareDataset(object):
 
     def copy_file(self):
         pass
-    #
-    # @staticmethod
-    # def walkdir(folder):
-    #     """Walk through each files in a directory"""
-    #     for dirpath, dirs, files in os.walk(folder):
-    #         for filename in files:
-    #             yield os.path.abspath(os.path.join(dirpath, filename))
-    #
-    # def dosomething(self, dir, outputdir, train_split_validate):
-    #     files = [file for file in os.listdir(dir) if os.path.isfile(os.path.join(dir, file))]
-    #     files.sort()
-    #     # Amount of random files you'd like to select
-    #     random_amount = int((len(files) * train_split_validate) + 1)
-    #     for x in range(random_amount):
-    #         if len(files) == 0:
-    #             break
-    #         else:
-    #             file = random.choice(files)
-    #             shutil.copy(os.path.join(dir, file), outputdir)
-    #
-    # def process_content_with_progress3(self, inputpath, outputdir, split_train_validate, blocksize=1024):
-    #     # Preprocess the total files sizes
-    #     sizecounter = 0
-    #     for filepath in tqdm(self.walkdir(inputpath), unit="files"):
-    #         sizecounter += os.stat(filepath).st_size
-    #
-    #     # Load tqdm with size counter instead of file counter
-    #     with tqdm(total=sizecounter,
-    #               unit='B', unit_scale=True, unit_divisor=1024) as pbar:
-    #         for filepath in self.walkdir(inputpath):
-    #             with open(filepath, 'rb') as fh:
-    #                 buf = 1
-    #                 while (buf):
-    #                     buf = fh.read(blocksize)
-    #                     self.dosomething(inputpath, self._default_validate, split_train_validate)
-    #                     if buf:
-    #                         pbar.set_postfix(file=filepath[-10:], refresh=False)
-    #                         pbar.update(len(buf))
 
 
 class DataSet(PrepareDataset):
@@ -198,30 +171,27 @@ class DataSet(PrepareDataset):
         self.make_validate_dir(split_train_validate)
 
 
-# class TestSet(PrepareDataset):
-#     """
-#     Class manage the Test set
-#     """
-#     __list_files = []  # list of files in test-set
-#
-#     def __init__(self, path_testset):
-#         """
-#         Default constructor of data-set. Once invoked it checks the validity of the examined folder, proceeds in the
-#         generation of the list of the files to validate the model.
-#         :param path_testset (str) path's test-set.
-#         """
-#         super(TestSet, self).__init__()
-#         if os.path.exists(path_testset):
-#             self.__list_files = self._scan_folder(path_testset)
-#             self.copy_file()
-#
-#     def copy_file(self):
-#         pass
-#         # for file in self.__list_files:
-#         #    shutil.copy(file, self.defalut_datatest_folder)
-#
-#     def __del__(self):
-#         pass
+class TestSet(PrepareDataset):
+    __list_files = []  # list of files in test-set
+
+    def __init__(self, raw_test_set):
+        """
+        Default constructor of data-set. Once invoked it checks the validity of the examined folder, proceeds in the
+        generation of the list of the files to validate the model.
+        :param path_testset (str) path's test-set.
+        """
+        super(TestSet, self).__init__()
+        if os.path.exists(raw_test_set):
+            self.__list_files = self._scan_folder(raw_test_set)
+
+    def copy_file(self):
+        print("Start copy test folder, please wait...")
+        for file in self.__list_files:
+            shutil.copy(file, self._default_test)
+        print("Done")
+
+    def __del__(self):
+        pass
 
 
 if __name__ == '__main__':
@@ -231,13 +201,7 @@ if __name__ == '__main__':
 
     d = DataSet(datest1)
     d.copy_file(split_train_validate=30)
-    # t = TestSet(test)
-    # t.copy_file()
-    # t.set_exclude_file(['.txt', '.csv'])
-    # dataset, category = d.get_dataset()
-    # print(dataset)
-    # print(category)
-    # t.set_exclude_file('.tiff')
-    #
-    # valid_images = [".jpg", ".gif", ".png"]
+    t = TestSet(test)
+    t.copy_file()
+
     quit()
