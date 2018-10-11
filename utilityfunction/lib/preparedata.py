@@ -92,6 +92,9 @@ class PrepareDataset(object):
             temp_list.append(i)
 
         return dict(zip(temp_list, self.__data_category))
+
+    def copy_file(self):
+        pass
     #
     # @staticmethod
     # def walkdir(folder):
@@ -133,39 +136,30 @@ class PrepareDataset(object):
 
 
 class DataSet(PrepareDataset):
-    """Class manage the data-set."""
-    __list_files = []  # list of files in data-set
-    __list_category = None  # data-set categories
-    _subdirs = []
-
     def __init__(self, raw_dataset):
         """
         Default constructor of data-set. Once invoked it checks the validity of the examined folder, proceeds in the
         generation of the list of the files of the dataset and of the relative classification.
-        :param path_dataset (str) path's data-set.
+        :param raw_dataset (str) path's data-set.
         """
         super(DataSet, self).__init__()
         # check if folder exist, then build the database
         try:
             if os.path.exists(raw_dataset):
-                for subdirs in os.listdir(raw_dataset):
-                    if subdirs not in self._exclude_ext:
-                        self._subdirs.append(os.path.join(raw_dataset, subdirs))
-                    else:
-                        pass
+                self.raw_dataset = raw_dataset
         except OSError:
             if not os.path.isdir(raw_dataset):
                 raise
-        self._subdirs.sort()
 
     def get_dataset(self):
         """
         Return the data-set and sub-category.
         :returns (list) files
-        :return (dict) category's data-set"""
+        :return (dict) category's data-set
+        """
         return self.__list_files, self.__list_category
 
-    def copy_file(self, split_train_validate=30):
+    def make_validate_dir(self, split_train_validate=30):
         """
         Copy from original folder and split in two folder train and validate
                             data
@@ -177,29 +171,31 @@ class DataSet(PrepareDataset):
         try:
             if 0 < split_train_validate <= 100:
                 split_train_validate /= 100
-                for raw in self._subdirs:
-                    for root, dir, files in os.walk(raw):
-                        files.sort()
-                        # Amount of random files you'd like to select
-                        random_amount = int((len(files) * split_train_validate) + 1)
-                        mess = "Total files in {:8s},".format(root)
-                        mess += "\tsplit to {:3d}%,".format(int(split_train_validate * 100))
-                        mess += "\tfiles in validate folder: {:5d}".format(random_amount)
-                        print(mess)
-                        for x in range(random_amount):
-                            if len(files) == 0:
-                                break
+                for root, dir, files in os.walk(self.raw_dataset):
+                    files.sort()
+                    # Amount of random files you'd like to select
+                    random_amount = int((len(files) * split_train_validate) + 1)
+                    mess = "Total files in {:8s},".format(root)
+                    mess += "\tsplit to {:3d}%,".format(int(split_train_validate * 100))
+                    mess += "\tfiles in validate folder: {:5d}".format(random_amount)
+                    print(mess)
+                    for x in range(random_amount):
+                        if len(files) == 0:
+                            break
+                        else:
+                            file = random.choice(files)
+                            tmpdir = os.path.split(root)[1]
+                            dest = os.path.join(self._default_validate, tmpdir)
+                            if not os.path.exists(dest):
+                                os.makedirs(dest)
                             else:
-                                file = random.choice(files)
-                                tmpdir = os.path.split(root)[1]
-                                dest = os.path.join(self._default_validate, tmpdir)
-                                if not os.path.exists(dest):
-                                    os.makedirs(dest)
-                                else:
-                                    pass
-                                shutil.copy(os.path.join(root, file), dest)
+                                pass
+                            shutil.copy(os.path.join(root, file), dest)
         except ValueError:
             print(ValueError, "train_split_validate must be a number to divide the training set must be 0 and 100")
+
+    def copy_file(self, split_train_validate=30):
+        self.make_validate_dir(split_train_validate)
 
 
 # class TestSet(PrepareDataset):
