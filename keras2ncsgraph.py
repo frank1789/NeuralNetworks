@@ -153,11 +153,17 @@ if __name__ == '__main__':
     # parsing argument script
     parser = argparse.ArgumentParser()
     parser.add_argument('-k', '--keras', action='store', dest='kerasmodel', help='Keras model')
-    args = parser.parse_args()
-    # split argument in local var
-    model_in = args.kerasmodel
-    # process keras model to GRAPH
-    model_converter = KerasToNCSGraph()
-    model_converter.set_keras_model_file(model_in)
-    model_converter.convertGraph()
-    quit()
+    try:
+        args = parser.parse_args()
+        # split argument in local var
+        model_in = args.kerasmodel
+        # process keras model to GRAPH
+        model_converter = KerasToNCSGraph()
+        model_converter.set_keras_model_file(model_in)
+        model_converter.convertGraph()
+        quit()
+    except:
+        parser.print_help()
+        sys.exit()
+
+

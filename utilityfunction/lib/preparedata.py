@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 import shutil
 import re
 import fnmatch
@@ -206,12 +207,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--dataset', action='store', dest='rawdataset', help='Original folder raw dataset')
     parser.add_argument('-t', '--test', action='store', dest='rawtest', help='Original folder test dataset')
-    parser.add_argument('-s', '--split', action='store', dest='split', default=30,  help='Split percentage train and validate set.')
-    args = parser.parse_args()
-    # split argument in local var
-    dataset_in = args.rawdataset
-    test_in = args.rawtest
-    split_in = args.split
+    parser.add_argument('-s', '--split', action='store', dest='split', default=30,
+                        help='Split percentage train and validate set.')
 
     # # TODO remove
     #
@@ -239,12 +236,20 @@ if __name__ == '__main__':
     # del d2
 
     ####################################################################################
-
-    # process dataset
-    out_dataset = DataSet(dataset_in)
-    out_test = TestSet(test_in)
-    out_dataset.copy_file(split_train_validate=split_in)
-    out_test.copy_file()
-    # clean all
-    del out_dataset, out_test
-    quit()
+    try:
+        args = parser.parse_args()
+        # split argument in local var
+        dataset_in = args.rawdataset
+        test_in = args.rawtest
+        split_in = args.split
+        # process dataset
+        out_dataset = DataSet(dataset_in)
+        out_test = TestSet(test_in)
+        out_dataset.copy_file(split_train_validate=split_in)
+        out_test.copy_file()
+        # clean all
+        del out_dataset, out_test
+        quit()
+    except:
+        parser.print_help()
+        sys.exit()
