@@ -6,6 +6,7 @@ import shutil
 import re
 import fnmatch
 import random
+import argparse
 
 
 class PrepareDataset(object):
@@ -110,6 +111,7 @@ class PrepareDataset(object):
 
 class DataSet(PrepareDataset):
     raw_dataset = None
+
     def __init__(self, raw_dataset):
         """
         Default constructor of data-set. Once invoked it checks the validity of the examined folder, proceeds in the
@@ -172,7 +174,6 @@ class DataSet(PrepareDataset):
     def copy_file(self, split_train_validate=30):
         self.make_validate_dir(split_train_validate)
 
-
     def __del__(self):
         pass
 
@@ -201,23 +202,49 @@ class TestSet(PrepareDataset):
 
 
 if __name__ == '__main__':
-    # test 1
-    datest1 = '/Users/francesco/Downloads/the-simpsons-characters-dataset/simpsons_dataset/'
-    test = '/Users/francesco/Downloads/the-simpsons-characters-dataset/kaggle_simpson_testset'
+    # parsing argument script
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', '--dataset', action='store', dest='rawdataset', help='Original folder raw dataset')
+    parser.add_argument('-t', '--test', action='store', dest='rawtest', help='Original folder test dataset')
+    parser.add_argument('-s', '--split', action='store', dest='split', default=30,  help='Split percentage train and validate set.')
+    args = parser.parse_args()
+    # split argument in local var
+    dataset_in = args.rawdataset
+    test_in = args.rawtest
+    split_in = args.split
 
-    d = DataSet(datest1)
-    d.copy_file(split_train_validate=30)
-    t = TestSet(test)
-    t.copy_file()
+    # # TODO remove
+    #
+    # datest1 = '/Users/francesco/Downloads/the-simpsons-characters-dataset/simpsons_dataset/'
+    # test = '/Users/francesco/Downloads/the-simpsons-characters-dataset/kaggle_simpson_testset'
+    #
+    # d = DataSet(datest1)
+    # d.copy_file(split_train_validate=30)
+    # t = TestSet(test)
+    # t.copy_file()
+    #
+    # del t
+    # del d
+    #
+    # datates2 = r'/Users/francesco/Downloads/DogAndCatDataset/train'
+    # tets2 = r'/Users/francesco/Downloads/DogAndCatDataset/test'
+    #
+    # d2 = DataSet(datates2)
+    # d2.copy_file()
+    # t2 =  TestSet(tets2)
+    # t2.copy_file()
+    #
+    #
+    # del t2
+    # del d2
 
-    del t
-    del d
+    ####################################################################################
 
-    datates2 = r'/Users/francesco/Downloads/DogAndCatDataset/train'
-    tets2 = r'/Users/francesco/Downloads/DogAndCatDataset/test'
-
-    d2 = DataSet(datates2)
-    d2.copy_file()
-    t2 =  TestSet(tets2)
-    t2.copy_file()
+    # process dataset
+    out_dataset = DataSet(dataset_in)
+    out_test = TestSet(test_in)
+    out_dataset.copy_file(split_train_validate=split_in)
+    out_test.copy_file()
+    # clean all
+    del out_dataset, out_test
     quit()
