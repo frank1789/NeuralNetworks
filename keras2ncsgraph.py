@@ -5,6 +5,7 @@ import os
 import sys
 import shutil
 import threading
+import argparse
 from utilityfunction import Spinner
 import tensorflow as tf
 from keras import backend as kbe
@@ -149,6 +150,14 @@ class KerasToNCSGraph:
 
 
 if __name__ == '__main__':
-    t = KerasToNCSGraph()
-    t.set_keras_model_file('inceptionv3-transfer-learning.model')
-    t.convertGraph()
+    # parsing argument script
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-k', '--keras', action='store', dest='kerasmodel', help='Keras model')
+    args = parser.parse_args()
+    # split argument in local var
+    model_in = args.kerasmodel
+    # process keras model to GRAPH
+    model_converter = KerasToNCSGraph()
+    model_converter.set_keras_model_file(model_in)
+    model_converter.convertGraph()
+    quit()
