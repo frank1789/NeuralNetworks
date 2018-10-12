@@ -8,6 +8,7 @@ import re
 import fnmatch
 import random
 import argparse
+from loader import Spinner
 
 
 class PrepareDataset(object):
@@ -105,27 +106,23 @@ class PrepareDataset(object):
 
         return dict(zip(temp_list, self.__data_category))
 
-    @staticmethod
-    def split_in_folder_by_namefiles(filename):
+    def split_in_folder_by_namefiles(self, filename, dest_dir):
         """
         Method to read the fileanme and split in folder by name
         :param filename: (str) pathfolder file
+        :param dest_dir: (str) destination directory
         """
         # regex ([A-z]\w+[^_^.])(\.?\_?)([0-9])+(.png|.jpg|.gif)$
-        # pattern =
         match = re.search(r"(?P<filename>[A-z]\w+)(\.?_?)(?P<filenumber>[0-9])+(?P<extesion>.\w+)", filename)
-        folderName = match.group('filename')
-
+        folderName = os.path.join(dest_dir, match.group('filename'))
         if not os.path.exists(folderName):
             os.mkdir(folderName)
             shutil.copy(os.path.join('folder', filename), folderName)
         else:
             shutil.copy(os.path.join('folder', filename), folderName)
 
-
     def copy_file(self):
         pass
-
 
     def __del__(self):
         pass
@@ -149,6 +146,8 @@ class DataSet(PrepareDataset):
         except OSError:
             if not os.path.isdir(raw_dataset):
                 raise
+
+        self.__spin = Spinner()
 
     def get_dataset(self):
         """
@@ -175,7 +174,7 @@ class DataSet(PrepareDataset):
                     files.sort()
                     # Amount of random files you'd like to select
                     random_amount = int((len(files) * split_train_validate) + 1)
-                    mess = "Total files in {:8s},".format(root)
+                    mess = "Total files in {:8s},".format(root[:-8])
                     mess += "\tsplit to {:3d}%,".format(int(split_train_validate * 100))
                     mess += "\tfiles in validate folder: {:5d}".format(random_amount)
                     print(mess)
@@ -183,14 +182,9 @@ class DataSet(PrepareDataset):
                         if len(files) == 0:
                             break
                         else:
-                            file = random.choice(files)
-                            tmpdir = os.path.split(root)[1]
-                            dest = os.path.join(self._default_validate, tmpdir)
-                            if not os.path.exists(dest):
-                                os.makedirs(dest)
-                            else:
-                                pass
-                            shutil.copy(os.path.join(root, file), dest)
+                            file = os.path.join(root, random.choice(files))
+                            self.split_in_folder_by_namefiles(filename=file, dest_dir=self._default_validate)
+
         except ValueError:
             print(ValueError, "train_split_validate must be a number to divide the training set must be 0 and 100")
 
@@ -199,19 +193,30 @@ class DataSet(PrepareDataset):
         Copy the in correct folder splitted in train and validate
         :param split_train_validate: (int) percentul to divide set
         """
+        self.__list_files = self._scan_folder(self.raw_dataset)
         # copy train folder
-        if os.path.exists(self.raw_dataset):
-            self.__list_files = self._scan_folder(self.raw_dataset)
-        print("Start copy train folder, please wait...")
-        for file in self.__list_files:
-            self.split_in_folder_by_namefiles(file)
-            shutil.copy(file, self._default_train)
+        for dirpath, dirnames, files in os.walk(self.raw_dataset):
+            if files:  # check if train folder contains only files
+                print(dirpath, 'has files\nStart copy train folder')
+                self.__spin.start()
+                self.__list_files = self._scan_folder(self.raw_dataset)
+                for file in self.__list_files:
+                    self.split_in_folder_by_namefiles(file, self._default_train)
+
+            if not files:  # check if train folder contains subfolder
+                print(dirpath, 'has subfolder\nStart copy train folders')
+                self.__spin.start()
+                for file in self.__list_files:
+                    shutil.copy(file, self._default_train)
+
+        self.__spin.stop()
         print("Done")
         # make validate folder
         self.make_validate_dir(split_train_validate)
 
     def __del__(self):
         self.__list_files.clear()
+        del self.__spin
         pass
 
 
@@ -228,14 +233,20 @@ class TestSet(PrepareDataset):
         if os.path.exists(raw_test_set):
             self.__list_files = self._scan_folder(raw_test_set)
 
+        self.__spin = Spinner()
+
     def copy_file(self):
-        print("Start copy test folder, please wait...")
+        print("Start copy test folder")
+        self.__spin.start()
         for file in self.__list_files:
             shutil.copy(file, self._default_test)
+
+        self.__spin.stop()
         print("Done")
 
     def __del__(self):
         self.__list_files.clear()
+        del self.__spin
         pass
 
 
@@ -246,33 +257,6 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--test', action='store', dest='rawtest', help='Original folder test dataset')
     parser.add_argument('-s', '--split', action='store', dest='split', default=30,
                         help='Split percentage train and validate set.')
-
-    # # TODO remove
-    #
-    # datest1 = '/Users/francesco/Downloads/the-simpsons-characters-dataset/simpsons_dataset/'
-    # test = '/Users/francesco/Downloads/the-simpsons-characters-dataset/kaggle_simpson_testset'
-    #
-    # d = DataSet(datest1)
-    # d.copy_file(split_train_validate=30)
-    # t = TestSet(test)
-    # t.copy_file()
-    #
-    # del t
-    # del d
-    #
-    # datates2 = r'/Users/francesco/Downloads/DogAndCatDataset/train'
-    # tets2 = r'/Users/francesco/Downloads/DogAndCatDataset/test'
-    #
-    # d2 = DataSet(datates2)
-    # d2.copy_file()
-    # t2 =  TestSet(tets2)
-    # t2.copy_file()
-    #
-    #
-    # del t2
-    # del d2
-
-    ####################################################################################
     try:
         args = parser.parse_args()
         # split argument in local var
