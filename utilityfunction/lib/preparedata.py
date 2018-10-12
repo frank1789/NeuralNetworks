@@ -8,6 +8,10 @@ import re
 import fnmatch
 import random
 import argparse
+
+#try:
+#    from .loader import Spinner
+#except:
 from loader import Spinner
 
 
@@ -121,6 +125,22 @@ class PrepareDataset(object):
         else:
             shutil.copy(os.path.join('folder', filename), folderName)
 
+    def make_folder_category(self, file, default_folder):
+        """
+        This method extract the last folder before the file in porcess
+        :param  file: (str) path input file
+        :return dest_dir: (str) path destination file
+        """
+        root_dir = os.path.dirname(file)
+        path_sep = os.path.sep
+        components = root_dir.split(path_sep)[-1]
+        dest_dir = os.path.join(default_folder, components)
+        if not os.path.exists(dest_dir):
+            os.makedirs(dest_dir)
+        else:
+            pass
+        return dest_dir
+
     def copy_file(self):
         pass
 
@@ -148,6 +168,7 @@ class DataSet(PrepareDataset):
                 raise
 
         self.__spin = Spinner()
+        self.__split_by_name = False
 
     def get_dataset(self):
         """
@@ -167,26 +188,40 @@ class DataSet(PrepareDataset):
                   train            validate
         :param split_train_validate: (int) indicates how much to divide the training set
         """
-        try:
-            if 0 < split_train_validate <= 100:
-                split_train_validate /= 100
-                for root, dir, files in os.walk(self.raw_dataset):
-                    files.sort()
-                    # Amount of random files you'd like to select
-                    random_amount = int((len(files) * split_train_validate) + 1)
-                    mess = "Total files in {:8s},".format(root[:-8])
-                    mess += "\tsplit to {:3d}%,".format(int(split_train_validate * 100))
-                    mess += "\tfiles in validate folder: {:5d}".format(random_amount)
-                    print(mess)
-                    for x in range(random_amount):
-                        if len(files) == 0:
-                            break
-                        else:
-                            file = os.path.join(root, random.choice(files))
-                            self.split_in_folder_by_namefiles(filename=file, dest_dir=self._default_validate)
 
-        except ValueError:
-            print(ValueError, "train_split_validate must be a number to divide the training set must be 0 and 100")
+        if 0 < split_train_validate <= 100:
+                split_train_validate /= 100
+                for root, dir, f in os.walk(self.raw_dataset):
+                    # [f for f in os.listdir(path) if f.endswith('.txt')]
+                    files = [files for files in f if files not in self._exclude_ext]
+
+                    if files != []:
+                        files.sort()
+                        # Amount of random files you'd like to select
+                        random_amount = int((len(files) * split_train_validate) + 1)
+                        root_dir = root
+                        path_sep = os.path.sep
+                        components = root_dir.split(path_sep)[-1]
+                        mess = "Total files in {:30s}: {:5d},".format(components, len(files))
+                        mess += "\tsplit to {:3d}%,".format(int(split_train_validate * 100))
+                        mess += "\tfiles in validate folder: {:5d}".format(random_amount)
+                        print(mess)
+
+                        for x in range(random_amount):
+                            if len(files) == 0:
+                                break
+                            else:
+                                outfile = os.path.join(root, random.choice(files))
+                                if self.__split_by_name:
+                                    self.split_in_folder_by_namefiles(filename=outfile, dest_dir=self._default_validate)
+                                else:
+                                    dest = self.make_folder_category(outfile, default_folder=self._default_validate)
+                                    shutil.copy(outfile, dest)
+
+        else:
+            print("train_split_validate must be a number to divide the training set must be 0 and 100")
+            sys.exit()
+
 
     def copy_file(self, split_train_validate=30):
         """
@@ -196,21 +231,30 @@ class DataSet(PrepareDataset):
         self.__list_files = self._scan_folder(self.raw_dataset)
         # copy train folder
         for dirpath, dirnames, files in os.walk(self.raw_dataset):
-            if files:  # check if train folder contains only files
-                print(dirpath, 'has files\nStart copy train folder')
+            if files and files is self._exclude_ext:  # check if train folder contains only files
+                print(dirpath, '\nStart copy train folder')
                 self.__spin.start()
                 self.__list_files = self._scan_folder(self.raw_dataset)
+
                 for file in self.__list_files:
                     self.split_in_folder_by_namefiles(file, self._default_train)
 
-            if not files:  # check if train folder contains subfolder
-                print(dirpath, 'has subfolder\nStart copy train folders')
-                self.__spin.start()
-                for file in self.__list_files:
-                    shutil.copy(file, self._default_train)
+                self.__spin.stop()
+                print("Done")
+                self.__split_by_name = True
 
-        self.__spin.stop()
-        print("Done")
+            elif os.listdir(dirpath) == []:
+                # check if train folder contains subfolder
+                print(dirpath, '\nStart copy train folders')
+                self.__spin.start()
+
+                for file in self.__list_files:
+                    dest_dir = self.make_folder_category(file, default_folder=self._default_train)
+                    shutil.copy(file, dest_dir)
+
+                self.__spin.stop()
+                print("Done")
+
         # make validate folder
         self.make_validate_dir(split_train_validate)
 
