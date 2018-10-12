@@ -173,6 +173,18 @@ class DataSet(PrepareDataset):
             print(ValueError, "train_split_validate must be a number to divide the training set must be 0 and 100")
 
     def copy_file(self, split_train_validate=30):
+        """
+        Copy the in correct folder splitted in train and validate
+        :param split_train_validate: (int) percentul to divide set
+        """
+        # copy train folder
+        if os.path.exists(self.raw_dataset):
+            self.__list_files = self._scan_folder(self.raw_dataset)
+        print("Start copy train folder, please wait...")
+        for file in self.__list_files:
+            shutil.copy(file, self._default_train)
+        print("Done")
+        # make validate folder
         self.make_validate_dir(split_train_validate)
 
     def __del__(self):
@@ -199,6 +211,7 @@ class TestSet(PrepareDataset):
         print("Done")
 
     def __del__(self):
+        self.__list_files.clear()
         pass
 
 
@@ -249,7 +262,6 @@ if __name__ == '__main__':
         out_test.copy_file()
         # clean all
         del out_dataset, out_test
-        quit()
     except:
         parser.print_help()
         sys.exit()
