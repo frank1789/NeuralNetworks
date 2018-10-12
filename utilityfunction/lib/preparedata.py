@@ -30,7 +30,6 @@ class PrepareDataset(object):
     _default_train = r'./data/train'  # folder contains the data-set and his sub-folder
     _default_validate = r'./data/validate'  # folder contains the data-set and his sub-folder
     _default_test = r'./data/test'  # folder contains test-set
-
     _exclude_ext = ['.DS_Store', 'desktop.ini', 'Desktop.ini', '.csv', '.json',
                     '.h5']  # extensions of the files to be ignored, such as hidden files
     __data_category = None  # collect name of sub-folder in data-set
@@ -106,12 +105,35 @@ class PrepareDataset(object):
 
         return dict(zip(temp_list, self.__data_category))
 
+    @staticmethod
+    def split_in_folder_by_namefiles(filename):
+        """
+        Method to read the fileanme and split in folder by name
+        :param filename: (str) pathfolder file
+        """
+        # regex ([A-z]\w+[^_^.])(\.?\_?)([0-9])+(.png|.jpg|.gif)$
+        # pattern =
+        match = re.search(r"(?P<filename>[A-z]\w+)(\.?_?)(?P<filenumber>[0-9])+(?P<extesion>.\w+)", filename)
+        folderName = match.group('filename')
+
+        if not os.path.exists(folderName):
+            os.mkdir(folderName)
+            shutil.copy(os.path.join('folder', filename), folderName)
+        else:
+            shutil.copy(os.path.join('folder', filename), folderName)
+
+
     def copy_file(self):
+        pass
+
+
+    def __del__(self):
         pass
 
 
 class DataSet(PrepareDataset):
     raw_dataset = None
+    __list_files = []
 
     def __init__(self, raw_dataset):
         """
@@ -182,12 +204,14 @@ class DataSet(PrepareDataset):
             self.__list_files = self._scan_folder(self.raw_dataset)
         print("Start copy train folder, please wait...")
         for file in self.__list_files:
+            self.split_in_folder_by_namefiles(file)
             shutil.copy(file, self._default_train)
         print("Done")
         # make validate folder
         self.make_validate_dir(split_train_validate)
 
     def __del__(self):
+        self.__list_files.clear()
         pass
 
 
