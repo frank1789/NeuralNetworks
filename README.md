@@ -31,6 +31,7 @@ Project based on:
 
 + Python 3.5.2
 + Keras 2.2.0
++ [tensorflow](https://www.tensorflow.org/install/) (tensorflow-gpu) 1.10.0  
 
 The packages needed are enclosed in file “requirements.txt“, to install, type in the terminal:
 ```shell
@@ -61,7 +62,16 @@ The Neural Compute SDK also includes examples. After cloning and running 'make i
 ```shell
 make examples
 ```
+## Make dataset
+This script allows you to organize a dataset, downloaded from the internet or made in-house, as a structure of folders containing sets for training, validation and testing of the neural network.
+<div style="text-align:center"><img src ="https://github.com/frank1789/NeuralNetworks/blob/feature/readme/img/structure.png" /></div>
 
+This structure is congenial for use with Keras specifically with the [** flow_from_directory **](https://keras.io/preprocessing/image/)  method.
+Be aware of the fact that if the folders are empty, the result will be a reduced dataset because it will automatically skip.
+It is necessary to pass in argument the folder containing the raw dataset (-d), and the folder containing the raw test set (-t)
+```shell
+python3 makeDataset.py -d ./data -t ./test
+```
 ## Convert from Keras model to NCS
 Type command:
 ```shell
