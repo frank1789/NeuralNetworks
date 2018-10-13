@@ -228,7 +228,7 @@ class DataSet(PrepareDataset):
         # copy train folder
         for dirpath, dirnames, files in os.walk(self.raw_dataset):
 
-            if dirnames is []:
+            if dirnames == []:
                 # check if train folder contains only files
                 print('\nStart copy train folder')
                 self.__spin.start()
@@ -241,7 +241,7 @@ class DataSet(PrepareDataset):
                 print("Done")
                 self.__split_by_name = True
 
-            elif os.listdir(dirpath) is not[]:
+            elif dirnames is not []:
                 # check if train folder contains subfolder
                 print('\nStart copy train folders')
                 self.__spin.start()
