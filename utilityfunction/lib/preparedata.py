@@ -8,10 +8,6 @@ import re
 import fnmatch
 import random
 import argparse
-
-#try:
-#    from .loader import Spinner
-#except:
 from loader import Spinner
 
 
@@ -231,8 +227,10 @@ class DataSet(PrepareDataset):
         self.__list_files = self._scan_folder(self.raw_dataset)
         # copy train folder
         for dirpath, dirnames, files in os.walk(self.raw_dataset):
-            if files and files is self._exclude_ext:  # check if train folder contains only files
-                print(dirpath, '\nStart copy train folder')
+
+            if dirnames is []:
+                # check if train folder contains only files
+                print('\nStart copy train folder')
                 self.__spin.start()
                 self.__list_files = self._scan_folder(self.raw_dataset)
 
@@ -243,9 +241,9 @@ class DataSet(PrepareDataset):
                 print("Done")
                 self.__split_by_name = True
 
-            elif os.listdir(dirpath) == []:
+            elif os.listdir(dirpath) is not[]:
                 # check if train folder contains subfolder
-                print(dirpath, '\nStart copy train folders')
+                print('\nStart copy train folders')
                 self.__spin.start()
 
                 for file in self.__list_files:
@@ -254,6 +252,10 @@ class DataSet(PrepareDataset):
 
                 self.__spin.stop()
                 print("Done")
+
+            else:
+                print("Unrecognized tree folder structure")
+                sys.exit()
 
         # make validate folder
         self.make_validate_dir(split_train_validate)
