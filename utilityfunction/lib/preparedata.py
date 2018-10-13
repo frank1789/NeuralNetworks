@@ -20,7 +20,7 @@ class PrepareDataset(object):
                                           | data  |
                                           |_______|
                                             |
-                            +---------------+-------------------+       
+                            +---------------+-------------------+
                             |               |                   |
                            _              _                    _
                           | \_____       | \_________         | \_____
@@ -137,6 +137,17 @@ class PrepareDataset(object):
             pass
         return dest_dir
 
+    @staticmethod
+    def get_num_subfolders(path):
+        """
+        Get count of number of sub-folders directly below the folder in path.
+        :param path: (str) path folder
+        :return: (int)
+        """
+        if not os.path.exists(path):
+            return 0
+        return sum([len(d) for r, d, files in os.walk(path)])
+
     def copy_file(self):
         pass
 
@@ -147,6 +158,7 @@ class PrepareDataset(object):
 class DataSet(PrepareDataset):
     raw_dataset = None
     __list_files = []
+    __processed = False
 
     def __init__(self, raw_dataset):
         """
@@ -225,17 +237,20 @@ class DataSet(PrepareDataset):
         :param split_train_validate: (int) percentul to divide set
         """
         self.__list_files = self._scan_folder(self.raw_dataset)
+        count = 1
+        totaldir = self.get_num_subfolders(self.raw_dataset) + 1
         # copy train folder
         for dirpath, dirnames, files in os.walk(self.raw_dataset):
 
-            if dirnames == []:
+            if dirnames == [] and not self.__processed:
                 # check if train folder contains only files
                 print('\nStart copy train folder')
                 self.__spin.start()
                 self.__list_files = self._scan_folder(self.raw_dataset)
 
-                for file in self.__list_files:
-                    self.split_in_folder_by_namefiles(file, self._default_train)
+                for file in files:
+                    filepath = os.path.join(dirpath, file)
+                    self.split_in_folder_by_namefiles(filepath, self._default_train)
 
                 self.__spin.stop()
                 print("Done")
@@ -243,15 +258,18 @@ class DataSet(PrepareDataset):
 
             elif dirnames is not []:
                 # check if train folder contains subfolder
-                print('\nStart copy train folders')
+                print('\nStart copy train folders {:5d} of {:5d}'.format(count, totaldir))
                 self.__spin.start()
 
-                for file in self.__list_files:
-                    dest_dir = self.make_folder_category(file, default_folder=self._default_train)
-                    shutil.copy(file, dest_dir)
+                for file in files:
+                    filepath = os.path.join(dirpath, file)
+                    dest_dir = self.make_folder_category(filepath, default_folder=self._default_train)
+                    shutil.copy(filepath, dest_dir)
 
                 self.__spin.stop()
                 print("Done")
+                self.__processed = True
+                count += 1
 
             else:
                 print("Unrecognized tree folder structure")
