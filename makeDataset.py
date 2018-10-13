@@ -1,50 +1,6 @@
 #!usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# import os
-# import shutil
-# import random
-#
-# # You can get all the files in a directory like this:
-# dir = r'/Users/francesco/Desktop/data/train/cat'
-# outputdir = r'/Users/francesco/Desktop/data/validate/cat'
-# if not os.path.exists(outputdir):
-#     os.makedirs(outputdir)
-#
-# files = [file for file in os.listdir(dir) if os.path.isfile(os.path.join(dir, file))]
-# files.sort()
-# # count file in dir and select 30%
-# print("total files: {:7d}, then select 30% {:7d}".format(len(files), int((len(files) * 0.3) + 1)))
-#
-# # Amount of random files you'd like to select
-# random_amount = int((len(files) * 0.3) + 1)
-# for x in range(random_amount):
-#     if len(files) == 0:
-#         break
-#     else:
-#         file = random.choice(files)
-#         shutil.copy(os.path.join(dir, file), outputdir)
-#
-#
-# # You can get all the files in a directory like this:
-# dir = r'/Users/francesco/Desktop/data/train/dog'
-# outputdir = r'/Users/francesco/Desktop/data/validate/dog'
-# if not os.path.exists(outputdir):
-#     os.makedirs(outputdir)
-#
-# files = [file for file in os.listdir(dir) if os.path.isfile(os.path.join(dir, file))]
-# files.sort()
-# # count file in dir and select 30%
-# print("total files: {:7d}, then select 30% {:7d}".format(len(files), int((len(files) * 0.3) + 1)))
-#
-# # Amount of random files you'd like to select
-# random_amount = int((len(files) * 0.3) + 1)
-# for x in range(random_amount):
-#     if len(files) == 0:
-#         break
-#     else:
-#         file = random.choice(files)
-#         shutil.copy(os.path.join(dir, file), outputdir)
 import argparse
 import sys
 from utilityfunction import DataSet, TestSet
