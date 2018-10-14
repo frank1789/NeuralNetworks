@@ -76,11 +76,26 @@ It is necessary to pass in argument:
 python3 makeDataset.py -d ./data -t ./test -s 30
 ```
 After this it is possible to begin to train the neural network through the script 'name' passing in argument:
-- absolute path folder of the training set (-d)
-- absolute path folder of the validation set (-v)
+
+| Argument |  <nobr>Long Description</nobr> | Help |
+|:--------:|:--------------:|--------|
+|
+|-d| --dataset |requires path to train folder|
+|-v| --validate|requires path to validate folder|
+|-e| --epoch   |requires number of epochs, one forward pass and one backward pass of all the training examples|
+|-b| --batch   |requires batch size number of samples that will be propagated through the network|
+|-n| --neuralnetwork|requires to specify an existing neural network as VGG, Inception, ResNet, etc|
+|-f| --finetuning|requires the percentage of layers to be trained, taking weights of a trained neural network and use it as initialization for a new model being trained on data from the same domain|
+|-i| --imagesize|requires to specify the width and height dimensions of the images|
 ```shell
-python3 -d -v
+python3 python3 train.py -d /Users/francesco/PycharmProjects/KerasTest/dataLittle/train -v /Users/francesco/PycharmProjects/KerasTest/dataLittle/validate -e 10
 ```
+The following neural networks are available within the script
++ VGG16 (lower case for script argument)
++ VGG19 (lower case for script argument)
++ InceptionV3 (aka *'inception'* argument script)
++ Xception (lower case for script argument)
++ ResNet50 (aka *'resnet50'* argument script)
 
 ## Convert from Keras model to NCS
 Type command:
