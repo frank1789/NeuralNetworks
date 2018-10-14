@@ -127,7 +127,7 @@ class MyArgumentParser(object):
         if optinal.fine_tuning is not None:
             self.args['fine_tuning'] = (True, (optinal.fine_tuning / 100))
         else:
-            self.args['fine_tuning'] = False
+            self.args['fine_tuning'] = (False, 0)
 
         self.args['batch'] = optinal.batch_size
         self.args['image_width'] = optinal.image_size[0]
@@ -135,10 +135,26 @@ class MyArgumentParser(object):
 
     def get_arguments(self):
         out_dict = self.args
+        print("\n{:s}".format('-' * 79))
+        print("Summary:")
+        print("\tepochs: {:11d}".format(out_dict['epochs']))
+        print("\tbatch size: {:7d}".format(out_dict['batch']))
+        print("\timage width: {:6d}".format(out_dict['image_width']))
+        print("\timgae height: {:5d}".format(out_dict['image_height']))
+        print("\ttrain folder path: {:s}".format(out_dict['train']))
+        print("\tvalidate folder path: {:s}".format(out_dict['valid']))
+        if out_dict['neuralnetwork'] is not '':
+            print("\tneural network: {:s}".format(out_dict['neuralnetwork']))
+        else:
+            print("\tneural network: own model")
+        print("\tfine-tuning enabled: {0}".format(out_dict['fine_tuning'][0]))
+        print("\tpercentage of trainable layers: {:3d}%".format(int(out_dict['fine_tuning'][1] * 100)))
+        print("{:s}".format('-' * 79))
         return out_dict
 
-    def __del__(self):
-        del self.args
+
+def __del__(self):
+    del self.args
 
 
 if __name__ == '__main__':
@@ -153,7 +169,7 @@ if __name__ == '__main__':
     neuralnetwork.set_valid_generator(valid_dir=args['valid'])
 
     # prepare the model
-    if args['fine_tuning']:
+    if args['fine_tuning'][0]:
         neuralnetwork.set_face_recognition_model(pretrained_model=args['neuralnetwork'],
                                                  weights='imagenet',
                                                  trainable_parameters=args['fine_tuning'][0],
