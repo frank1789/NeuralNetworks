@@ -121,8 +121,6 @@ class FaceRecognition(object):
     def train_and_fit_model(self, figure_history_name):
         """Train the model"""
         # Fit
-        # checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=0, save_best_only=True, mode='max')
-        # callbacks_list = [LearningRateScheduler(lr_schedule), checkpoint]
         history = self.m_model.fit_generator(
             self.m_train_generator,
             epochs=self.m_epochs,
@@ -131,7 +129,7 @@ class FaceRecognition(object):
             validation_steps=self.m_num_validate_samples // self.m_batch_size,
             shuffle=True,
             class_weight='auto', )
-
+        # print plot training (accuracy vs lost)
         plotter = HistoryAnalysis.plot_history(history, figure_history_name)
 
     def load_model_from_file(self, filename, weights_file=None):
@@ -222,23 +220,35 @@ class FaceRecognition(object):
         :return output: (obj) pre-trained NN weights
         """
         if pretrained_model == 'inception':
-            model_base = InceptionV3(include_top=include_top, weights=weights,
+            model_base = InceptionV3(include_top=include_top,
+                                     weights=weights,
                                      input_shape=self.m_train_generator.image_shape)
             output = model_base.output
+
         elif pretrained_model == 'xception':
-            model_base = Xception(include_top=include_top, weights=weights,
+            model_base = Xception(include_top=include_top,
+                                  weights=weights,
                                   input_shape=self.m_train_generator.image_shape)
             output = (Flatten())(model_base.output)
+
         elif pretrained_model == 'resnet50':
-            model_base = ResNet50(include_top=include_top, weights=weights,
+            model_base = ResNet50(include_top=include_top,
+                                  weights=weights,
                                   input_shape=self.m_train_generator.image_shape)
-            output = Flatten()(model_base.output)
+            output = model_base.output
+
         elif pretrained_model == 'vgg16':
-            model_base = VGG16(include_top=include_top, weights=weights, input_shape=self.m_train_generator.image_shape)
+            model_base = VGG16(include_top=include_top,
+                               weights=weights,
+                               input_shape=self.m_train_generator.image_shape)
             output = model_base.output
+
         elif pretrained_model == 'vgg19':
-            model_base = VGG19(include_top=include_top, weights=weights, input_shape=self.m_train_generator.image_shape)
+            model_base = VGG19(include_top=include_top,
+                               weights=weights,
+                               input_shape=self.m_train_generator.image_shape)
             output = model_base.output
+
         return model_base, output
 
     def set_face_recognition_model(self, pretrained_model='', weights='', include_top=False, Number_FC_Neurons=1024,
@@ -317,13 +327,20 @@ class FaceRecognition(object):
         elif pretrained_model == 'inception':
             model_base, output = self.get_pretrained_model(pretrained_model, weights, include_top)
             self.m_model_base_ = model_base.input
+            x = GlobalAveragePooling2D()(output)
+            x = Dense(Number_FC_Neurons, activation='relu')(x) # new FC layer, random init
 
         elif pretrained_model == 'xception':
             model_base, output = self.get_pretrained_model(pretrained_model, weights, include_top)
             self.m_model_base_ = model_base.input
             # classification block
-            # x = GlobalAveragePooling2D()(output)
             x = Dense(Number_FC_Neurons, activation='relu')(output)  # new FC layer, random init
+
+        elif pretrained_model == 'resnet50':
+            model_base, output = self.get_pretrained_model(pretrained_model, weights, include_top)
+            self.m_model_base_ = model_base.input
+            x = Flatten(name='flatten')(output)
+            x = Dropout(0.5)(x)
 
         elif pretrained_model == 'vgg16' or pretrained_model == 'vgg19':
             model_base, output = self.get_pretrained_model(pretrained_model, weights, include_top)
@@ -331,9 +348,13 @@ class FaceRecognition(object):
             # classification block
             x = Flatten()(output)
             x = Dense(Number_FC_Neurons, activation='sigmoid')(x)
-            x = Dropout(0.25)(x)
+            x = Dropout(0.5)(x)
             x = Dense(Number_FC_Neurons, activation='sigmoid')(x)
-            x = Dropout(0.25)(x)
+            x = Dropout(0.5)(x)
+
+        else:
+            print("Neural network not available")
+            sys.exit()
 
         # common output layer - predictions
         predictions = Dense(self.m_num_classes, activation='softmax', name="predictions")(x)

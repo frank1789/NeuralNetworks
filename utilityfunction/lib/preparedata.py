@@ -8,7 +8,7 @@ import re
 import fnmatch
 import random
 import argparse
-from loader import Spinner
+from .loader import Spinner
 
 
 class PrepareDataset(object):
