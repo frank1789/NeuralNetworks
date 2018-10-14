@@ -79,7 +79,6 @@ After this it is possible to begin to train the neural network through the scrip
 
 | Argument |  <nobr>Long Description</nobr> | Help |
 |:--------:|:--------------:|--------|
-|
 |-d| --dataset |requires path to train folder|
 |-v| --validate|requires path to validate folder|
 |-e| --epoch   |requires number of epochs, one forward pass and one backward pass of all the training examples|
