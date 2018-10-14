@@ -73,11 +73,7 @@ class KerasToNCSGraph:
             self.lock.release()
             self.wait.stop()
             print("Done")
-        else:
-            print("No files found")
-            sys.exit(0)
-
-        if os.path.exists(model_file) and weights_file is not None:
+        elif os.path.exists(model_file) and weights_file is not None:
             self.wait.start()
             self.lock.acquire()
             try:
@@ -97,6 +93,7 @@ class KerasToNCSGraph:
             self.lock.release()
             self.wait.stop()
             print("Done")
+            return
         else:
             print("No files found")
             sys.exit(0)
@@ -171,6 +168,14 @@ if __name__ == '__main__':
                         type=str,
                         help='requires keras model file')
 
+    parser.add_argument('-w', '--weights',
+                        metavar='file',
+                        action='store',
+                        dest='weights',
+                        type=str,
+                        required=False,
+                        help='requires weights model file as: model.json and weights.h5')
+
     parser.add_argument('-n', '--name',
                         metavar='name',
                         action='store',
@@ -183,11 +188,16 @@ if __name__ == '__main__':
     args = parser.parse_args()
     # split argument in local var
     model_in = args.kerasmodel
+    weights_in = args.weights
     out_name = args.name
     if model_in is not None:
         # process keras model to GRAPH
         model_converter = KerasToNCSGraph()
-        model_converter.set_keras_model_file(model_in)
+        #model_file='', weights_file=None, view_summary=False):
+        if weights_in is None:
+            model_converter.set_keras_model_file(model_file=model_in)
+        else:
+            model_converter.set_keras_model_file(model_file=model_in, weights_file=weights_in)
         model_converter.convertGraph(name=out_name)
         quit()
     else:
