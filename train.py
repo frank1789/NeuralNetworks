@@ -181,5 +181,7 @@ if __name__ == '__main__':
     name = args['neuralnetwork']
     # train fit
     neuralnetwork.train_and_fit_model(name)
+    # save model
+    neuralnetwork.save_model_to_file(name=name, extension='.model', export_image=True)
     # clear
     del neuralnetwork

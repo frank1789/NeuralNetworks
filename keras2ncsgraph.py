@@ -109,6 +109,7 @@ class KerasToNCSGraph:
         :param  name (str) the name of ProtocolBuffer file
         """
         print("Start conversion in Protocol Buffer")
+        filename = name + '.pb'
         kbe.set_learning_phase(0)
         net_model = self.model_
         # Alias the outputs in the model - this sometimes makes them easier to access in TF
@@ -130,9 +131,9 @@ class KerasToNCSGraph:
 
         # Write the graph in binary .pb file
         constant_graph = graph_util.convert_variables_to_constants(sess, sess.graph.as_graph_def(), pred_node_names)
-        graph_io.write_graph(constant_graph, self.tf_model_dir, name, as_text=False)
-        print('Saved the constant graph (ready for inference) at: ', os.path.join(self.tf_model_dir, (name + '.pb')))
-        self.tf_model_ = os.path.join(self.tf_model_dir, (name + '.pb'))
+        graph_io.write_graph(constant_graph, self.tf_model_dir, filename, as_text=False)
+        print('Saved the constant graph (ready for inference) at: ', os.path.join(self.tf_model_dir, filename))
+        self.tf_model_ = os.path.join(self.tf_model_dir, filename)
         # compile
         self.__compile_graph_model(name_graph_model_file=name)
 
@@ -152,9 +153,9 @@ class KerasToNCSGraph:
         os.system(cmd)
 
     def __delete_tmp_directory(self):
-        if os.path.exists(self.tf_model_dir):
+        if os.path.exists(self.base_dir):
             print("removing previous temporary files")
-            shutil.rmtree(self.tf_model_dir, ignore_errors=True)
+            shutil.rmtree(self.base_dir, ignore_errors=True)
 
 
 if __name__ == '__main__':
