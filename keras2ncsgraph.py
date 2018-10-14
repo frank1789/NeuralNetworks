@@ -144,26 +144,29 @@ class KerasToNCSGraph:
         os.system(cmd)
 
     def __delete_tmp_directory(self):
-        if os.path.exists(self.base_dir):
+        if os.path.exists(self.tf_model_dir):
             print("removing previous temporary files")
-            shutil.rmtree(self.base_dir, ignore_errors=True)
+            shutil.rmtree(self.tf_model_dir, ignore_errors=True)
 
 
 if __name__ == '__main__':
     # parsing argument script
     parser = argparse.ArgumentParser()
-    parser.add_argument('-k', '--keras', action='store', dest='kerasmodel', help='Keras model')
-    try:
-        args = parser.parse_args()
-        # split argument in local var
-        model_in = args.kerasmodel
+    parser.add_argument('-k', '--keras',
+                        metavar='file',
+                        action='store',
+                        dest='kerasmodel',
+                        help='requires keras model file')
+
+    args = parser.parse_args()
+    # split argument in local var
+    model_in = args.kerasmodel
+    if model_in is not None:
         # process keras model to GRAPH
         model_converter = KerasToNCSGraph()
         model_converter.set_keras_model_file(model_in)
         model_converter.convertGraph()
         quit()
-    except:
+    else:
         parser.print_help()
         sys.exit()
-
-
