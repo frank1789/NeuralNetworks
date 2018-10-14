@@ -93,7 +93,7 @@ class KerasToNCSGraph:
         if view_summary:
             print('Model Summary:', self.model_.summary())  # print summary model
 
-    def convertGraph(self, numoutputs=1, prefix='k2tfout', name='model.pb'):
+    def convertGraph(self, numoutputs=1, prefix='k2tfout', name='model'):
         """
         Converts an HD5F file to a .pb file for use with Tensorflow.
         :param  numoutputs (int)
@@ -123,8 +123,8 @@ class KerasToNCSGraph:
         # Write the graph in binary .pb file
         constant_graph = graph_util.convert_variables_to_constants(sess, sess.graph.as_graph_def(), pred_node_names)
         graph_io.write_graph(constant_graph, self.tf_model_dir, name, as_text=False)
-        print('Saved the constant graph (ready for inference) at: ', os.path.join(self.tf_model_dir, name))
-        self.tf_model_ = os.path.join(self.tf_model_dir, name)
+        print('Saved the constant graph (ready for inference) at: ', os.path.join(self.tf_model_dir, (name + '.pb')))
+        self.tf_model_ = os.path.join(self.tf_model_dir, (name + '.pb'))
         # compile
         self.__compile_graph_model()
 
@@ -151,21 +151,32 @@ class KerasToNCSGraph:
 
 if __name__ == '__main__':
     # parsing argument script
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser( description='Convert Keras model file (.h5, json, .model) in Graph model file.')
     parser.add_argument('-k', '--keras',
                         metavar='file',
                         action='store',
                         dest='kerasmodel',
+                        type=str,
                         help='requires keras model file')
+
+    parser.add_argument('-n', '--name',
+                        metavar='name',
+                        action='store',
+                        dest='name',
+                        default='model',
+                        required=False,
+                        type=str,
+                        help='requires name to assign output graph file')
 
     args = parser.parse_args()
     # split argument in local var
     model_in = args.kerasmodel
+    out_name = args.name
     if model_in is not None:
         # process keras model to GRAPH
         model_converter = KerasToNCSGraph()
         model_converter.set_keras_model_file(model_in)
-        model_converter.convertGraph()
+        model_converter.convertGraph(name=out_name)
         quit()
     else:
         parser.print_help()
