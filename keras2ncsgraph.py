@@ -16,6 +16,17 @@ from tensorflow.python.framework import graph_util
 # suppress warning and error message tf
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
+def title():
+    print("     )                                                           ")
+    print("  ( /(                    )                                    ) ")
+    print("  )\()) (  (      )    ( /(             (  ( (      )       ( /( ")
+    print("|((_)\ ))\ )(  ( /( (  )(_))(     (  (  )\))()(  ( /( `  )  )\())")
+    print("|_ ((_)((_|()\ )(_)))\((_)  )\ )  )\ )\((_))(()\ )(_))/(/( ((_)\ ")
+    print("| |/ (_))  ((_|(_)_((_)_  )_(_/( ((_|(_)(()(_|(_|(_)_((_)_\| |(_)")
+    print("| ' </ -_)| '_/ _` (_-</ /| ' \)) _|(_-< _` | '_/ _` | '_ \) ' \ ")
+    print("|_|\_\___||_| \__,_/__/___|_||_|\__|/__|__, |_| \__,_| .__/|_||_|")
+    print("                                       |___/         |_|         \n")
+
 
 class KerasToNCSGraph:
     model_ = None  # store model
@@ -126,7 +137,7 @@ class KerasToNCSGraph:
         print('Saved the constant graph (ready for inference) at: ', os.path.join(self.tf_model_dir, (name + '.pb')))
         self.tf_model_ = os.path.join(self.tf_model_dir, (name + '.pb'))
         # compile
-        self.__compile_graph_model()
+        self.__compile_graph_model(name_graph_model_file=name)
 
     def __compile_graph_model(self, name_graph_model_file='model'):
         """
@@ -150,6 +161,7 @@ class KerasToNCSGraph:
 
 
 if __name__ == '__main__':
+    title()
     # parsing argument script
     parser = argparse.ArgumentParser( description='Convert Keras model file (.h5, json, .model) in Graph model file.')
     parser.add_argument('-k', '--keras',
