@@ -87,7 +87,7 @@ After this it is possible to begin to train the neural network through the scrip
 |-f| --finetuning|requires the percentage of layers to be trained, taking weights <br>of a trained neural network and use it as initialization for a new<br> model being trained on data from the same domain|
 |-i| --imagesize|requires to specify the width and height dimensions of the images|
 ```shell
-python3 python3 train.py -d /Users/francesco/PycharmProjects/KerasTest/dataLittle/train -v /Users/francesco/PycharmProjects/KerasTest/dataLittle/validate -e 10
+python3 train.py -d ..data/train -v ../data/validate -e 10
 ```
 The following neural networks are available within the script
 + VGG16 (lower case for script argument)
