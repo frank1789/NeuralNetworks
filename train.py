@@ -86,7 +86,7 @@ class MyArgumentParser(object):
                                       'neural network and use it as initialization for a new model being trained on '
                                       'data from the same domain')
 
-        self.parser.add_argument('-i', '--imagesize',
+        self.parser.add_argument('-is', '--imagesize',
                                  metavar='NNN',
                                  action='store',
                                  dest='image_size',
@@ -95,6 +95,14 @@ class MyArgumentParser(object):
                                  default=[224, 224],
                                  required=False,
                                  help='requires to specify the width and height dimensions of the images')
+
+        self.parser.add_argument('-nm', '--namedata',
+                                 metavar='name data',
+                                 action='store',
+                                 dest='namedata',
+                                 type=str,
+                                 required=False,
+                                 help='requires to specify names of output files')
 
         self.args = {}
         self.__check_input_args()
@@ -178,7 +186,7 @@ if __name__ == '__main__':
         neuralnetwork.set_face_recognition_model(pretrained_model=args['neuralnetwork'],
                                                  weights='imagenet')
     # name for plot
-    name = args['neuralnetwork']
+    name = args['namedata']
     # train fit
     neuralnetwork.train_and_fit_model(name)
     # save model
