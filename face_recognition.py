@@ -5,6 +5,7 @@ import os
 import sys
 from utilityfunction import Spinner
 import errno
+import tensorflow as tf
 from keras.models import Model, model_from_json, load_model
 from keras.layers import Dropout, Flatten, Dense, Input
 from keras.optimizers import SGD, Adam
@@ -21,6 +22,21 @@ from staticsanalysis import HistoryAnalysis
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 # specify input shape
 kbe.set_image_dim_ordering('tf')
+
+""" 
+TensorFlow maps nearly all of the GPU memory of all GPUs (subject to CUDA_VISIBLE_DEVICES) visible to the process. 
+This is done to more efficiently use the relatively precious GPU memory resources on the devices by reducing memory 
+fragmentation.
+
+In some cases it is desirable for the process to only allocate a subset of the available memory, or to only grow the 
+memory usage as is needed by the process. TensorFlow provides two Config options on the Session to control this.
+refer: https://www.tensorflow.org/guide/using_gpu
+"""
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True  # dynamically grow the memory used on the GPU
+config.log_device_placement = True  # to log device placement (on which device the operation ran)
+sess = tf.Session(config=config)
+kbe.set_session(sess)  # set this TensorFlow session as the default session for Keras
 
 
 class FaceRecognition(object):
@@ -328,7 +344,7 @@ class FaceRecognition(object):
             model_base, output = self.get_pretrained_model(pretrained_model, weights, include_top)
             self.m_model_base_ = model_base.input
             x = GlobalAveragePooling2D()(output)
-            x = Dense(Number_FC_Neurons, activation='relu')(x) # new FC layer, random init
+            x = Dense(Number_FC_Neurons, activation='relu')(x)  # new FC layer, random init
 
         elif pretrained_model == 'xception':
             model_base, output = self.get_pretrained_model(pretrained_model, weights, include_top)
