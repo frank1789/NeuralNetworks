@@ -161,7 +161,8 @@ class KerasToNCSGraph:
 if __name__ == '__main__':
     title()
     # parsing argument script
-    parser = argparse.ArgumentParser( description='Convert Keras model file (.h5, json, .model) in Graph model file.')
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+                                    description='Convert Keras model file (.h5, json, .model) in Graph model file.')
     parser.add_argument('-k', '--keras',
                         metavar='file',
                         action='store',
@@ -194,7 +195,6 @@ if __name__ == '__main__':
     if model_in is not None:
         # process keras model to GRAPH
         model_converter = KerasToNCSGraph()
-        #model_file='', weights_file=None, view_summary=False):
         if weights_in is None:
             model_converter.set_keras_model_file(model_file=model_in)
         else:

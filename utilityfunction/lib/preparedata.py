@@ -198,38 +198,37 @@ class DataSet(PrepareDataset):
         """
 
         if 0 < split_train_validate <= 100:
-                split_train_validate /= 100
-                for root, dir, f in os.walk(self.raw_dataset):
-                    # [f for f in os.listdir(path) if f.endswith('.txt')]
-                    files = [files for files in f if files not in self._exclude_ext]
+            split_train_validate /= 100
+            for root, dir, f in os.walk(self.raw_dataset):
+                # [f for f in os.listdir(path) if f.endswith('.txt')]
+                files = [files for files in f if files not in self._exclude_ext]
 
-                    if files != []:
-                        files.sort()
-                        # Amount of random files you'd like to select
-                        random_amount = int((len(files) * split_train_validate) + 1)
-                        root_dir = root
-                        path_sep = os.path.sep
-                        components = root_dir.split(path_sep)[-1]
-                        mess = "Total files in {:30s}: {:5d},".format(components, len(files))
-                        mess += "\tsplit to {:3d}%,".format(int(split_train_validate * 100))
-                        mess += "\tfiles in validate folder: {:5d}".format(random_amount)
-                        print(mess)
+                if files != []:
+                    files.sort()
+                    # Amount of random files you'd like to select
+                    random_amount = int((len(files) * split_train_validate) + 1)
+                    root_dir = root
+                    path_sep = os.path.sep
+                    components = root_dir.split(path_sep)[-1]
+                    mess = "Total files in {:30s}: {:5d},".format(components, len(files))
+                    mess += "\tsplit to {:3d}%,".format(int(split_train_validate * 100))
+                    mess += "\tfiles in validate folder: {:5d}".format(random_amount)
+                    print(mess)
 
-                        for x in range(random_amount):
-                            if len(files) == 0:
-                                break
+                    for x in range(random_amount):
+                        if len(files) == 0:
+                            break
+                        else:
+                            outfile = os.path.join(root, random.choice(files))
+                            if self.__split_by_name:
+                                self.split_in_folder_by_namefiles(filename=outfile, dest_dir=self._default_validate)
                             else:
-                                outfile = os.path.join(root, random.choice(files))
-                                if self.__split_by_name:
-                                    self.split_in_folder_by_namefiles(filename=outfile, dest_dir=self._default_validate)
-                                else:
-                                    dest = self.make_folder_category(outfile, default_folder=self._default_validate)
-                                    shutil.copy(outfile, dest)
+                                dest = self.make_folder_category(outfile, default_folder=self._default_validate)
+                                shutil.copy(outfile, dest)
 
         else:
             print("train_split_validate must be a number to divide the training set must be 0 and 100")
             sys.exit()
-
 
     def copy_file(self, split_train_validate=30):
         """
