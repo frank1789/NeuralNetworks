@@ -140,6 +140,7 @@ class MyArgumentParser(object):
         self.args['batch'] = optinal.batch_size
         self.args['image_width'] = optinal.image_size[0]
         self.args['image_height'] = optinal.image_size[1]
+        self.args['namedata'] = optinal.namedata
 
     def get_arguments(self):
         out_dict = self.args
