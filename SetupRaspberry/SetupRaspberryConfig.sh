@@ -6,7 +6,7 @@ sudo apt-get install -y libavcodec-dev libavformat-dev libswscale-dev libv4l-dev
 sudo apt-get install -y libxvidcore-dev libx264-dev
 sudo apt-get install -y libgtk2.0-dev libgtk-3-dev
 sudo apt-get install -y libatlas-base-dev gfortran
-sudo apt-get install -y libqtgui4
+sudo apt-get install -y libqtgui4 git gcc
 sudo apt autoremove
 echo "!!!! A T T E N T I O N !!!!"
 echo "You will likely need to increase the swapfile size on the Raspberry Pi in
@@ -22,10 +22,10 @@ echo "Then restart the swapfile service"
 sudo /etc/init.d/dphys-swapfile restart
 echo "===== Install Intel Sdk ====="
 cd
-wget https://ncs-forum-uploads.s3.amazonaws.com/ncsdk/ncsdk-02_05_00_02-full/ncsdk-2.05.00.02.tar.gz
-tar xvf ncsdk-2.05.00.02.tar.gz
-cd ncsdk-2.05.00.02
+git clone -b ncsdk2 https://github.com/movidius/ncsdk.git
+cd ncsdk
 make install
+cd
 echo "===== Start download OpenCV ====="
 cd
 wget -O opencv.zip https://github.com/Itseez/opencv/archive/3.4.3.zip
