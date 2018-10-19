@@ -31,6 +31,7 @@ Project based on:
 
 + Python 3.5.2
 + Keras 2.2.0
++ numpy
 + [tensorflow](https://www.tensorflow.org/install/) (tensorflow-gpu) 1.10.0  
 
 The packages needed are enclosed in file “requirements.txt“, to install, type in the terminal:
@@ -95,6 +96,23 @@ The following neural networks are available within the script
 + InceptionV3 (aka *'inception'* argument script)
 + Xception (lower case for script argument)
 + ResNet50 (aka *'resnet50'* argument script)
+
+#### [Using GPU](https://www.tensorflow.org/guide/using_gpu)
+Using this script, the entire GPU memory is mapped as described below.
+##### Allowing GPU memory growth
+By default, TensorFlow maps nearly all of the GPU memory of all GPUs (subject to CUDA_VISIBLE_DEVICES) visible to the process. This is done to more efficiently use the relatively precious GPU memory resources on the devices by reducing memory fragmentation.
+
+In some cases it is desirable for the process to only allocate a subset of the available memory, or to only grow the memory usage as is needed by the process. TensorFlow provides two Config options on the Session to control this.
+
+The first is the **allow_growth** option, which attempts to allocate only as much GPU memory based on runtime allocations: it starts out allocating very little memory, and as Sessions get run and more GPU memory is needed, we extend the GPU memory region needed by the TensorFlow process. Note that we do not release memory, since that can lead to even worse memory fragmentation. To turn this option on, set the option in the ConfigProto by a [script optimized]() already implemented:
+```python
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True  # dynamically grow the memory used on the GPU
+config.log_device_placement = True     # to log device placement (on which device the operation ran)
+config.allow_soft_placement = True      # search automatically free GPU
+sess = tf.Session(config=config)
+kbe.set_session(sess)                   # set this TensorFlow session as the default session for Keras
+```
 
 ## Convert from Keras model to NCS
 Type command:
