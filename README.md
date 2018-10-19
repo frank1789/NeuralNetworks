@@ -17,13 +17,13 @@ Proceed with the installation of: VirtualBox, extension package, OS.
 
 Once completed, we configure the virtual guest machine as shown in the following pictures.
 
-<div style="text-align:center"><img src ="https://github.com/frank1789/NeuralNetworks/blob/feature/readme/img/fig1.png" /></div>
-<div style="text-align:center"><img src ="https://github.com/frank1789/NeuralNetworks/blob/feature/readme/img/fig2.png" /></div>
-<div style="text-align:center"><img src ="https://github.com/frank1789/NeuralNetworks/blob/feature/readme/img/fig3.png" /></div>
-<div style="text-align:center"><img src ="https://github.com/frank1789/NeuralNetworks/blob/feature/readme/img/fig4.png" /></div>
-<div style="text-align:center"><img src ="https://github.com/frank1789/NeuralNetworks/blob/feature/readme/img/fig5.png" /></div>
-<div style="text-align:center"><img src ="https://github.com/frank1789/NeuralNetworks/blob/feature/readme/img/fig6.png" /></div>
-<div style="text-align:center"><img src ="https://github.com/frank1789/NeuralNetworks/blob/feature/readme/img/fig7.png" /></div>
+<div style="text-align:center"><img src ="https://github.com/frank1789/NeuralNetworks/blob/master/img/fig1.png" /></div>
+<div style="text-align:center"><img src ="https://github.com/frank1789/NeuralNetworks/blob/master/img/fig2.png" /></div>
+<div style="text-align:center"><img src ="https://github.com/frank1789/NeuralNetworks/blob/master/img/fig3.png" /></div>
+<div style="text-align:center"><img src ="https://github.com/frank1789/NeuralNetworks/blob/master/img/fig4.png" /></div>
+<div style="text-align:center"><img src ="https://github.com/frank1789/NeuralNetworks/blob/master/img/fig5.png" /></div>
+<div style="text-align:center"><img src ="https://github.com/frank1789/NeuralNetworks/blob/master/img/fig6.png" /></div>
+<div style="text-align:center"><img src ="https://github.com/frank1789/NeuralNetworks/blob/master/img/fig7.png" /></div>
 
 
 ### Prerequisites
@@ -64,7 +64,7 @@ make examples
 ```
 ## Make dataset & Training Neural Networks
 This script allows you to organize a dataset, downloaded from the internet or made in-house, as a structure of folders containing sets for training, validation and testing of the neural network.
-<div style="text-align:center"><img src ="https://github.com/frank1789/NeuralNetworks/blob/feature/readme/img/structure.png" /></div>
+<div style="text-align:center"><img src ="https://github.com/frank1789/NeuralNetworks/blob/master/img/structure.png" /></div>
 
 This structure is congenial for use with Keras specifically with the <em>**[ flow_from_directory](https://keras.io/preprocessing/image/)**</em> method.
 Be aware of the fact that if the folders are empty, the result will be a reduced dataset because it will automatically skip.
