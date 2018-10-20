@@ -1,14 +1,16 @@
 \documentclass[conference]{IEEEtran}
 \usepackage{cite}
+
+%--------package image---------------------------------------------------------
 \usepackage{graphicx}
-\graphicspath{ {images/} }
-
-
-
+\graphicspath{{./imgs/}}
+\renewcommand{\figurename}{Fig.}
+\usepackage{subfig}
+%-------package tikz-----------------------------------------------------------
 \usepackage{tikz,fp,ifthen,fullpage}
 \usepackage{pgfmath}
 \usetikzlibrary{backgrounds}
-\usetikzlibrary{decorations.pathmorphing,backgrounds,fit,calc,through, 
+\usetikzlibrary{decorations.pathmorphing,backgrounds,fit,calc,through,
 decorations.markings}
 \usetikzlibrary{arrows}
 \usetikzlibrary{shapes,decorations,shadows}
@@ -19,78 +21,35 @@ decorations.markings}
 \usetikzlibrary{decorations.shapes}
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.13}
-
-
-
-
-
-
-
-
-
-
-
-
-
+%--------------------------Document--------------------------------------------
 \begin{document}
-
 %Here goes the title
-
-\title{Enter your Paper Title Here}
-
-
+	\title{Enter your Paper Title Here}
 %Authors List
-
-\author
-{\IEEEauthorblockN{Francesco Argentieri}
-\IEEEauthorblockA{ID 183892\\
-Email: francesco.argentieri@studenti.unitn.it}
-%\and
-%\IEEEauthorblockN{Author 2}
-%\IEEEauthorblockA{University\\
-%Location\\
-%Email: }
-}
-
-
-\maketitle
+	\author
+	{\IEEEauthorblockN{Francesco Argentieri}
+		\IEEEauthorblockA{ID 183892\\
+		Email: francesco.argentieri@studenti.unitn.it}
+		%\and
+		%\IEEEauthorblockN{Author 2}
+		%\IEEEauthorblockA{University\\
+		%Location\\
+		%Email: }
+	}
+	\maketitle
 %Main body starts
-
-\begin{abstract}
-Abstract goes here
-
-\end{abstract}
-
-
-\begin {IEEEkeywords}
-IoT, Ontology, Semantics,  SSN, OWL, OBOE, OpenIoT, SWEET, SUMO
-\end{IEEEkeywords}
-
-
-
+	\begin{abstract}
+		Abstract goes here
+	\end{abstract}
+% define keyword
+	\begin {IEEEkeywords}
+		IoT, Ontology, Semantics,  SSN, OWL, OBOE, OpenIoT, SWEET, SUMO
+	\end{IEEEkeywords}
 	%Introduction
 	\input{introduction}
-
-
-
-
-
-
-\section{Section 2}
-\label{section2}
+	\section{Section 2}\label{section2}
 %\input{sections/2_section.tex}
-
-
-
 	\subsection{IoT}
-
-
-
-
-
-
-
-
 \section{Section 3}
 \label{section3}
 %\input{sections/3_section.tex}
@@ -133,8 +92,7 @@ IoT, Ontology, Semantics,  SSN, OWL, OBOE, OpenIoT, SWEET, SUMO
 %\input{sections/5_conclusion.tex}
 
 
-
-\bibliographystyle{IEEEtran}
-\bibliography{my-bibliography}
-
+% bibliography
+	\bibliographystyle{IEEEtran}
+	\bibliography{my-bibliography}
 \end{document}

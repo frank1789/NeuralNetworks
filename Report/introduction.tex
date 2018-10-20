@@ -37,11 +37,8 @@ each class label that is present in the learning dataset of a new instance that
 is not labelled.
 A typical example of \emph{multi-class classification} is the recognition of
 hand-written text.\cite{raschka2016machine}
-
-
-
-
-\begin{figure}
+%
+\begin{figure}[!h]
 \centering
 \begin{tikzpicture}
  \draw [help lines] (0,0) grid [step=0.5] (3,2);
@@ -64,6 +61,31 @@ has no reward function.
 Through interaction with the environment, an agent can then use reinforcement
 learning to learn a series of actions that maximize this reward through a
 trial-and-error exploratory approach or deliberative planning.\cite{raschka2016machine}
+%
+\begin{figure}[!h]
+\centering
+\begin{tikzpicture}[>=latex]
+ %\draw [help lines] (0,0) grid [step=0.5] (8,4);
+ \draw (0.5,0) rectangle ++(3cm, 1.5cm);
+ \draw (4.5,2.5) rectangle ++(3cm,1.5cm);
+ %\node [draw] (1.5,2) {Agent};
+ \coordinate [label={[font=\small]center:Agent}] (A) at (2,0.75);
+ \coordinate [label={[font=\small]center:Envoiroment}] (E) at (6,3.25);
+ \draw [-, ultra thick] (3.5,0.75) -- (6,0.75);
+ \draw [->, ultra thick] (6,.75) -- (6,2.5);
+ \coordinate [label={[font=\small]center:State}] (S) at (6.5,1.5);
+ %
+ \draw [-, ultra thick] (4.5,2.75) -- (3,2.75);
+ \draw [->, ultra thick] (3,2.75) -- (3,1.5);
+ \coordinate [label={[font=\small]center:Action}] (T) at (3.5,3);
+ %
+ \draw [-, ultra thick] (4.5,3.75) -- (1,3.75);
+ \draw [->, ultra thick] (1,3.75) -- (1,1.5);
+ \coordinate [label={[font=\small]center:Reward}] (R) at (1.75,3.5);
+\end{tikzpicture} 
+\caption{reinforcement learning scheme} 
+\label{fig:reinforcement-learning-scheme}
+\end{figure}
 
 \subsection{Unsupervised learning}\label{subsec:unsupervised-learning}
 In supervised learning, we know in advance the correct answer when we describe
@@ -83,6 +105,12 @@ the objects present in the other clusters, which is why clustering is sometimes
 called \emph{``unsupervised classification"}.
 Clustering is an excellent technique for structuring information to identify
 meaningful relationships in the data.\cite{raschka2016machine}
+\begin{figure}[!h]
+\centering
+\includegraphics[width=\linewidth]{cluster}
+\caption{example of clustering}
+\label{fig:unsupervised-learning-scheme}
+\end{figure}
 
 
 
