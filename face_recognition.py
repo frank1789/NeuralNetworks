@@ -16,8 +16,7 @@ from keras.applications.imagenet_utils import preprocess_input
 from keras.preprocessing.image import ImageDataGenerator
 from keras.utils import plot_model
 from keras import backend as kbe
-
-# from staticsanalysis import HistoryAnalysis
+from staticsanalysis import HistoryAnalysis
 
 # suppress warning and error message tf
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -132,8 +131,7 @@ class FaceRecognition(object):
             shuffle=True,
             class_weight='auto', )
         # print plot training (accuracy vs lost)
-
-    # plotter = HistoryAnalysis.plot_history(history, figure_history_name)
+        plotter = HistoryAnalysis.plot_history(history, figure_history_name)
 
     def load_model_from_file(self, filename, weights_file=None):
         """
@@ -184,10 +182,14 @@ class FaceRecognition(object):
         """
         print("Saving model, please wait")
         # self.__spin.start()
-        if not os.path.exists(self.__pathdir):
-            os.makedirs(self.__pathdir)
+        root_dir = os.getcwd()
+        print("work directory: ", root_dir)
+        dest_dir = os.path.join(root_dir, 'Model')
+        print('destination directory:',dest_dir)
+        if not os.path.exists(dest_dir):
+            os.makedirs(dest_dir)
         # build the name-file
-        filename = os.path.join(self.__pathdir, (name + extension))
+        filename = os.path.join(dest_dir, (name + extension))
         if extension not in ['.h5', '.model', '.json']:
             self.__spin.stop()
             raise ValueError("Invalid extension, supported extensions are: '.h5', '.model', '.json'")
@@ -203,12 +205,12 @@ class FaceRecognition(object):
             with open(filename, "w") as json_file:
                 json_file.write(model_json)
             # save weights
-            namefile_weights = os.path.join(os.path.join(self.__pathdir, (name + '_weights.h5')))
+            namefile_weights = os.path.join(dest_dir, (name + '_weights.h5'))
             print(namefile_weights)
             self.m_model.save_weights(namefile_weights)
 
         if export_image:
-            image_name = os.path.join(self.__pathdir, (name + '.png'))
+            image_name = os.path.join(dest_dir, (name + '.png'))
             # print image of schema model
             plot_model(self.m_model, to_file=image_name, show_layer_names=True, show_shapes=True)
 
@@ -352,10 +354,10 @@ class FaceRecognition(object):
             self.m_model_base_ = model_base.input
             # classification block
             x = Flatten()(output)
-            x = Dense(Number_FC_Neurons, activation='relu')(x)
-            x = Dropout(0.5)(x)
-            x = Dense(Number_FC_Neurons, activation='relu')(x)
-            x = Dropout(0.5)(x)
+            # x = Dense(Number_FC_Neurons, activation='relu')(x)
+            # x = Dropout(0.5)(x)
+            # x = Dense(Number_FC_Neurons, activation='relu')(x)
+            # x = Dropout(0.5)(x)
 
         else:
             print("Neural network not available")
