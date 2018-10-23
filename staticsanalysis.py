@@ -1,3 +1,6 @@
+import matplotlib
+# This needs to be done *before* importing pyplot or pylab
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 
