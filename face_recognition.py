@@ -16,7 +16,8 @@ from keras.applications.imagenet_utils import preprocess_input
 from keras.preprocessing.image import ImageDataGenerator
 from keras.utils import plot_model
 from keras import backend as kbe
-from staticsanalysis import HistoryAnalysis
+
+# from staticsanalysis import HistoryAnalysis
 
 # suppress warning and error message tf
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -39,7 +40,7 @@ class FaceRecognition(object):
         self.m_lr = learning_rate
         self.m_image_width = image_width
         self.m_image_height = image_height
-        self.__pathdir = './Model/'
+        self.__pathdir = 'Model'
         self.__spin = Spinner()
 
     @staticmethod
@@ -131,7 +132,8 @@ class FaceRecognition(object):
             shuffle=True,
             class_weight='auto', )
         # print plot training (accuracy vs lost)
-        plotter = HistoryAnalysis.plot_history(history, figure_history_name)
+
+    # plotter = HistoryAnalysis.plot_history(history, figure_history_name)
 
     def load_model_from_file(self, filename, weights_file=None):
         """
@@ -181,7 +183,7 @@ class FaceRecognition(object):
         :param export_image: (bool) generate figure schema model
         """
         print("Saving model, please wait")
-        self.__spin.start()
+        # self.__spin.start()
         if not os.path.exists(self.__pathdir):
             os.makedirs(self.__pathdir)
         # build the name-file
@@ -201,14 +203,16 @@ class FaceRecognition(object):
             with open(filename, "w") as json_file:
                 json_file.write(model_json)
             # save weights
-            self.m_model.save_weights(os.path.join(self.__pathdir, (name + '_weights.h5')))
+            namefile_weights = os.path.join(os.path.join(self.__pathdir, (name + '_weights.h5')))
+            print(namefile_weights)
+            self.m_model.save_weights(namefile_weights)
 
         if export_image:
             image_name = os.path.join(self.__pathdir, (name + '.png'))
             # print image of schema model
             plot_model(self.m_model, to_file=image_name, show_layer_names=True, show_shapes=True)
 
-        self.__spin.stop()
+        # self.__spin.stop()
         print("Done")
 
     def get_pretrained_model(self, pretrained_model, weights='imagenet', include_top=False):
