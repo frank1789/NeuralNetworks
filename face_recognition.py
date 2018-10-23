@@ -348,9 +348,9 @@ class FaceRecognition(object):
             self.m_model_base_ = model_base.input
             # classification block
             x = Flatten()(output)
-            x = Dense(Number_FC_Neurons, activation='sigmoid')(x)
+            x = Dense(Number_FC_Neurons, activation='relu')(x)
             x = Dropout(0.5)(x)
-            x = Dense(Number_FC_Neurons, activation='sigmoid')(x)
+            x = Dense(Number_FC_Neurons, activation='relu')(x)
             x = Dropout(0.5)(x)
 
         else:
@@ -375,8 +375,12 @@ class FaceRecognition(object):
                     layer.trainable = False
 
         # compile the  model
-        self.m_model.compile(optimizer=SGD(lr=0.001, momentum=0.9),
-                             loss='categorical_crossentropy', metrics=['accuracy'])
+        if self.m_num_classes == 2:
+            self.m_model.compile(optimizer=SGD(lr=0.0001, momentum=0.9),
+                                 loss='categorical_crossentropy', metrics=['accuracy'])
+        else:
+            self.m_model.compile(optimizer='adam',
+                                 loss='categorical_crossentropy', metrics=['accuracy'])
 
         # print model structure diagram
         print(self.m_model.summary())

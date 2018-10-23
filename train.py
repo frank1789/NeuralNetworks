@@ -162,10 +162,6 @@ class MyArgumentParser(object):
         return out_dict
 
 
-def __del__(self):
-    del self.args
-
-
 if __name__ == '__main__':
     # parsing arguments
     args = MyArgumentParser().get_arguments()
