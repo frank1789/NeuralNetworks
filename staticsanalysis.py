@@ -1,7 +1,9 @@
 import matplotlib
+
 # This needs to be done *before* importing pyplot or pylab
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import os
 
 
 class HistoryAnalysis:
@@ -16,9 +18,16 @@ class HistoryAnalysis:
         :param namefile: (str) set name save file
         :return: plt(object) plot
         """
+        # make new directory
+        new_dir = 'ResultPlot'
+        if not os.path.exists(new_dir):
+            os.makedirs(new_dir)
+
+        # plot's name
+        loss_plot = os.path.join(new_dir, "{:s}_loss.png".format(namefile))
+        acc_plot = os.path.join(new_dir, "{:s}_accuracy.png".format(namefile))
 
         loss_list = [s for s in history.history.keys() if 'loss' in s and 'val' not in s]
-
         val_loss_list = [s for s in history.history.keys() if 'loss' in s and 'val' in s]
         acc_list = [s for s in history.history.keys() if 'acc' in s and 'val' not in s]
         val_acc_list = [s for s in history.history.keys() if 'acc' in s and 'val' in s]
@@ -48,7 +57,7 @@ class HistoryAnalysis:
         plt.legend()
 
         # save figure loss
-        plt.savefig("{:s}_loss.png".format(namefile))
+        plt.savefig(loss_plot)
 
         # Accuracy
         plt.figure(2)
@@ -65,5 +74,5 @@ class HistoryAnalysis:
         plt.legend()
 
         # save figure loss
-        plt.savefig("{:s}_accuracy.png".format(namefile))
+        plt.savefig(acc_plot)
         return plt
