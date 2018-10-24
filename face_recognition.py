@@ -23,6 +23,48 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 # specify input shape
 kbe.set_image_dim_ordering('tf')
 
+# option gpu
+gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.8, allow_growth=False)
+sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
+
+# Missing this was the source of one of the most challenging an insidious bugs that I've ever encountered.
+# Without explicitly linking the session the weights for the dense layer added below don't get loaded
+# and so the model returns random results which vary with each model you upload because of random seeds.
+kbe.set_session(sess)
+
+
+def freeze_session(session, keep_var_names=None, output_names=None, clear_devices=True):
+    """
+    Freezes the state of a session into a pruned computation graph.
+
+    Creates a new computation graph where variable nodes are replaced by
+    constants taking their current value in the session. The new graph will be
+    pruned so subgraphs that are not necessary to compute the requested
+    outputs are removed.
+    :param: session The TensorFlow session to be frozen.
+    :param: keep_var_names A list of variable names that should not be frozen,
+                          or None to freeze all the variables in the graph.
+    :param: output_names Names of the relevant graph outputs.
+    :param: clear_devices Remove the device directives from the graph for better portability.
+    :return: The frozen graph definition.
+    """
+    from tensorflow.python.framework.graph_util import convert_variables_to_constants
+    graph = session.graph
+    with graph.as_default():
+        freeze_var_names = list(set(v.op.name for v in tf.global_variables()).difference(keep_var_names or []))
+        output_names = output_names or []
+        output_names += [v.op.name for v in tf.global_variables()]
+        input_graph_def = graph.as_graph_def()
+        if clear_devices:
+            for node in input_graph_def.node:
+                node.device = ""
+        frozen_graph = convert_variables_to_constants(session, input_graph_def,
+                                                      output_names, freeze_var_names)
+        return frozen_graph
+
+
+print('Available GPU:', len(kbe.tensorflow_backend._get_available_gpus()))
+
 
 class FaceRecognition(object):
     m_train_generator = None
@@ -121,7 +163,6 @@ class FaceRecognition(object):
 
     def train_and_fit_model(self, figure_history_name):
         """Train the model"""
-        # Fit
         history = self.m_model.fit_generator(
             self.m_train_generator,
             epochs=self.m_epochs,
@@ -129,7 +170,7 @@ class FaceRecognition(object):
             validation_data=self.m_valid_generator,
             validation_steps=self.m_num_validate_samples // self.m_batch_size,
             shuffle=True,
-            class_weight='auto', )
+            class_weight='auto')
         # print plot training (accuracy vs lost)
         plotter = HistoryAnalysis.plot_history(history, figure_history_name)
 
@@ -185,7 +226,7 @@ class FaceRecognition(object):
         root_dir = os.getcwd()
         print("work directory: ", root_dir)
         dest_dir = os.path.join(root_dir, 'Model')
-        print('destination directory:',dest_dir)
+        print('destination directory:', dest_dir)
         if not os.path.exists(dest_dir):
             os.makedirs(dest_dir)
         # build the name-file
@@ -196,23 +237,41 @@ class FaceRecognition(object):
         if extension == '.h5':
             # export complete model with weights
             self.m_model.save(filename)
+            print('Saved model at: ', dest_dir, filename)
         elif extension == '.model':
             # export complete model with weights
             self.m_model.save(filename)
+            print('Saved model at: ', dest_dir, filename)
         elif extension == '.json':
             # save as JSON and weights
             model_json = self.m_model.to_json()
             with open(filename, "w") as json_file:
                 json_file.write(model_json)
+                print('Saved model definition at: ', dest_dir, filename)
             # save weights
             namefile_weights = os.path.join(dest_dir, (name + '_weights.h5'))
             print(namefile_weights)
             self.m_model.save_weights(namefile_weights)
+            print('Saved model weights at: ', dest_dir, filename)
 
         if export_image:
             image_name = os.path.join(dest_dir, (name + '.png'))
             # print image of schema model
             plot_model(self.m_model, to_file=image_name, show_layer_names=True, show_shapes=True)
+
+        # export as tensorflow .pb
+        # especially when run on Altair PBS system keras return 0 size file
+        frozen_graph = freeze_session(kbe.get_session(),
+                                      output_names=[out.op.name for out in self.m_model.outputs])
+
+        f = '{:s}.pb'.format(name)
+        tf.train.write_graph(frozen_graph, dest_dir, f, as_text=False)
+        print('Saved the graph definition at: ', dest_dir, f)
+
+        # Write the graph in human readable
+        f = '{:s}.pb.ascii'.format(name)
+        tf.train.write_graph(sess.graph.as_graph_def(), dest_dir, f, as_text=True)
+        print('Saved the graph definition in ascii format at: ', dest_dir, f)
 
         # self.__spin.stop()
         print("Done")
