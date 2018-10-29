@@ -105,13 +105,19 @@ class KerasNeuralNetwork(object):
         del self._model
 
 
-########################################################################################################################
-class TensorFlowNN(object):
+class TensorFlowNeuralNetwork(object):
+    """
+    TensorFlowNeuralNetwork class is used to read a neural network model trained with TensorFlow and provides several
+    methods for importing a file in format: '.pb', #TODO add others
+    Furthermore, before starting a new prediction, fill out the model according to the parameters used during the
+    training.
+    """
+
     def __init__(self):
         self._graph = None
 
     def __str__(self):
-        return "TensorFlowNN"
+        return "TensorFlowNeuralNetwork"
 
     def __load_graph(self, model_path):
         """
@@ -146,16 +152,6 @@ class TensorFlowNN(object):
         """
         return self
 
-    # # We use our "load_graph" function
-    # graph = load_graph("./models/frozen_model.pb")
-    #
-    # # We can verify that we can access the list of operations in the graph
-    # for op in graph.get_operations():
-    #     print(op.name)  # <--- printing the operations snapshot below
-    #     # prefix/Placeholder/inputs_placeholder
-    #     # ...
-    #     # prefix/Accuracy/predictions
-    #
     def get_input_tensor(self):
         """
         Access the input node.
@@ -258,26 +254,6 @@ class Identification(ModelNeuralNetwork):
         for test_image in self.file_list:
             result = self._generic_model.predict(self._images_to_tensor(test_image))
             print("eccomi", result)
-    #             result = self.model.predict(self._images_to_tensor(test_image))
-    #             print(result)
-    #             # self.show_image("test", test_image, result)
-    #     else:
-    #         # with tf.Session() as sess:
-    #         self.session.run(tf.global_variables_initializer())
-    #         for test_image in self.file_list:
-    #             test = self._images_to_tensor(test_image)
-    #             x_batch = test.reshape(1, self.img_width, self.img_height, 3)
-    #
-    #             y_pred = self.session.graph.get_tensor_by_name("predictions/Softmax:0")
-    #
-    #             # Let's feed the images to the input placeholders
-    #             x = self.session.graph.get_tensor_by_name("input_1:0")
-    #             # y_true = graph.get_tensor_by_name("y_true:0")
-    #             # y_test_images = np.zeros((1, 2))
-    #
-    #             # feed_dict_testing = {x: x_batch, y_true: y_test_images}
-    #             result = self.session.run(y_pred, {x: test})
-    #             print(result)
     #
     # def show_image(self, name, fig, result):
     #
@@ -322,15 +298,10 @@ if __name__ == '__main__':
     test = Identification(framework=KerasNeuralNetwork,
                           model_file_path="/Users/francesco/PycharmProjects/NeuralNetwork/Model/dogcat.h5")
     test.load_images("/Users/francesco/Downloads/DogAndCatDataset/test/test_images/1.jpg")
-    # kerasmodel = "/Users/francesco/PycharmProjects/NeuralNetwork/Model/dogcat.h5"
-    # test.load_model_from_file(kerasmodel)
-    # test.load_keras_model()
-    # test.load_tensorflow_graph()
-    # test.show_image()
+
     test.predict()
     del test
     tfmodel = "/Users/francesco/PycharmProjects/NeuralNetwork/Model/dogcat.pb"
-    test2 = Identification(TensorFlowNN, tfmodel)
+    test2 = Identification(TensorFlowNeuralNetwork, tfmodel)
     test2.load_images("/Users/francesco/Downloads/DogAndCatDataset/test/test_images/1.jpg")
-    # test2.load_model_from_file(tfmodel)
     test2.predict()
