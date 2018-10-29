@@ -1,13 +1,11 @@
 import os
 import errno
 import tensorflow as tf
-from tensorflow.python.platform import gfile
 from keras.optimizers import SGD
-import numpy
+import numpy as np
 from keras.models import load_model, model_from_json
 from keras.preprocessing import image
 import glob
-import re
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from utilityfunction import Spinner
@@ -107,14 +105,6 @@ class KerasNeuralNetwork(object):
         del self._model
 
 
-class ModelNeuralNetwork(object):
-
-    def __init__(self, framework, model_file_path, weight_file_path=None):
-        self.framework = framework()
-        self.framework.set_model_from_file(model_file_path, weight_file_path)
-        self._generic_model = self.framework.get_model()
-
-
 ########################################################################################################################
 class TensorFlowNN(object):
     def __init__(self):
@@ -151,7 +141,7 @@ class TensorFlowNN(object):
 
     def get_model(self):
         """
-        Returns the completed keras model before start prediction
+        Returns the completed tensorflow model before start prediction
         :return: model
         """
         return self
@@ -171,7 +161,17 @@ class TensorFlowNN(object):
         Access the input node.
         :return: input note
         """
-        x = self._graph.get_tensor_by_name('input_1:0')
+        # # We use our "load_graph" function
+        # graph = load_graph("./models/frozen_model.pb")
+        #
+        # # We can verify that we can access the list of operations in the graph
+        # for op in graph.get_operations():
+        #     print(op.name)  # <--- printing the operations snapshot below
+        #     # prefix/Placeholder/inputs_placeholder
+        #     # ...
+        #     # prefix/Accuracy/predictions
+        #
+        x = self._graph.get_tensor_by_name('prefix/input_1:0')
         return x
 
     def get_output_tenor(self):
@@ -179,87 +179,53 @@ class TensorFlowNN(object):
         Access the output node.
         :return: output node
         """
-        y = self._graph.get_tensor_by_name('predictions/Softmax:0')
+        # # We use our "load_graph" function
+        # graph = load_graph("./models/frozen_model.pb")
+        #
+        # # We can verify that we can access the list of operations in the graph
+        # for op in graph.get_operations():
+        #     print(op.name)  # <--- printing the operations snapshot below
+        #     # prefix/Placeholder/inputs_placeholder
+        #     # ...
+        #     # prefix/Accuracy/predictions
+        #
+        y = self._graph.get_tensor_by_name('prefix/predictions/Softmax:0')
         return y
 
     def predict(self, test_image):
-        #  We launch a Session
-        with tf.Session(graph=self._graph) as sess:
+        """
+        Perfom the prediction based on graph TensorFlow
+        :param test_image: image in tensor fromat
+        :return: (np-arry) prediction probability
+        """
+        with tf.Session(graph=self._graph) as sess:  # launch a Session
             x = self.get_input_tensor()
             y = self.get_output_tenor()
-            #     test_features = [
-            #         [0.377745556, 0.009904444, 0.063231111, 0.009904444, 0.003734444, 0.002914444, 0.008633333, 0.000471111,
-            #          0.009642222, 0.05406, 0.050163333, 7e-05, 0.006528889, 0.000314444, 0.00649, 0.043956667, 0.016816667,
-            #          0.001644444, 0.016906667, 0.00204, 0.027342222, 0.13864]]
-            #     # compute the predicted output for test_x
+            # compute the predicted output for test_x
             pred_y = sess.run(y, feed_dict={x: test_image})
-            print(pred_y)
         # return prediction
         return pred_y
 
 
-########################################################################################################################
+class ModelNeuralNetwork(object):
+    """
+    Design Pattern Class to instantiate the correct class to decode previously trained models currently supports:
+    - Keras ('.h5', '.model', '.json')
+    - TensorFlow ('.pb', protobuff)
+    - Intel Movidius ('.graph)
+    """
+
+    def __init__(self, framework, model_file_path, weight_file_path=None):
+        self.framework = framework()
+        self.framework.set_model_from_file(model_file_path, weight_file_path)
+        self._generic_model = self.framework.get_model()
+
+
 class Identification(ModelNeuralNetwork):
     def __init__(self, framework, model_file_path, weight_file_path=None):
         super(Identification, self).__init__(framework, model_file_path, weight_file_path)
         self.file_list = []
         self.img_width, self.img_height = 32, 32
-
-    # self.__spin = Spinner()
-
-    # def __load_tensorflow_graph(self, model_path):
-    #     with tf.gfile.FastGFile(model_path, 'rb') as f:
-    #         graph_def = tf.GraphDef()
-    #         graph_def.ParseFromString(f.read())
-    #         self.session.graph.as_default()
-    #         g_in = tf.import_graph_def(graph_def)
-
-    # def load_graph(frozen_graph_filename):
-    #     # We load the protobuf file from the disk and parse it to retrieve the
-    #     # unserialized graph_def
-    #     with tf.gfile.GFile(frozen_graph_filename, "rb") as f:
-    #         graph_def = tf.GraphDef()
-    #         graph_def.ParseFromString(f.read())
-    #
-    #     # Then, we can use again a convenient built-in function to import a graph_def into the
-    #     # current default Graph
-    #     with tf.Graph().as_default() as graph:
-    #         tf.import_graph_def(
-    #             graph_def,
-    #             input_map=None,
-    #             return_elements=None,
-    #             name="prefix",
-    #             op_dict=None,
-    #             producer_op_list=None
-    #         )
-    #     return graph
-    #
-    # # We use our "load_graph" function
-    # graph = load_graph("./models/frozen_model.pb")
-    #
-    # # We can verify that we can access the list of operations in the graph
-    # for op in graph.get_operations():
-    #     print(op.name)  # <--- printing the operations snapshot below
-    #     # prefix/Placeholder/inputs_placeholder
-    #     # ...
-    #     # prefix/Accuracy/predictions
-    #
-    # # We access the input and output nodes
-    # x = graph.get_tensor_by_name('prefix/input_neurons:0')
-    # y = graph.get_tensor_by_name('prefix/prediction_restore:0')
-    #
-    # # We launch a Session
-    # with tf.Session(graph=graph) as sess:
-
-    # writer = tf.summary.FileWriter('/Users/francesco/PycharmProjects/NeuralNetwork/output-checkpoint')
-    # writer.add_graph(sess.graph)
-    # writer.flush()
-    # writer.close()
-
-    # for op in sess.graph.get_operations():
-    #   print(op)
-    #    sess.close()
-    # tf.Session().close()
 
     def _images_to_tensor(self, picture):
         """
@@ -269,7 +235,7 @@ class Identification(ModelNeuralNetwork):
         """
         test_image = image.load_img(picture, target_size=(self.img_width, self.img_height))
         test_image = image.img_to_array(test_image)
-        test_image = numpy.expand_dims(test_image, axis=0)
+        test_image = np.expand_dims(test_image, axis=0)
         return test_image
 
     def load_images(self, directory_path):
@@ -350,70 +316,6 @@ class Identification(ModelNeuralNetwork):
     #
     # del self.session
     # del self.model
-
-
-# pass
-
-
-# #########################tf
-# import numpy as np
-#
-# # The input to the network is of shape [None image_size image_size num_channels]. Hence we reshape.
-#
-#
-# # Credit: Josh Hemann
-#
-#
-#
-# plt.rcdefaults()
-#
-#
-# objects = ('Python', 'C++', 'Java', 'Perl', 'Scala', 'Lisp')
-# y_pos = np.arange(len(objects))
-# performance = [10, 8, 6, 4, 2, 1]
-#
-# plt.barh(y_pos, performance, align='center', alpha=0.5)
-# plt.yticks(y_pos, objects)
-# plt.xlabel('Usage')
-# plt.title('Programming language usage')
-#
-# plt.show()
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-# from matplotlib import animation
-#
-#
-# fig = plt.figure()
-#
-# x = [1,2,3,4,5]
-# y = [5,7,2,5,3]
-#
-# data = np.column_stack([np.linspace(0, yi, 50) for yi in y])
-#
-# rects = plt.bar(x, data[0], color='c')
-# line, = plt.plot(x, data[0], color='r')
-# plt.ylim(0, max(y))
-# def animate(i):
-#     for rect, yi in zip(rects, data[i]):
-#         rect.set_height(yi)
-#     line.set_data(x, data[i])
-#     return rects, line
-#
-# anim = animation.FuncAnimation(fig, animate, frames=len(data), interval=40)
-# plt.show()
 
 
 if __name__ == '__main__':
