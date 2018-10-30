@@ -125,6 +125,7 @@ class TensorFlowNeuralNetwork(object):
         :param model_path: (str) model's folder path
         :return: graph
         """
+        print("Read model, please wait...")
         with tf.gfile.GFile(model_path, "rb") as f:
             graph_def = tf.GraphDef()
             graph_def.ParseFromString(f.read())
@@ -141,6 +142,7 @@ class TensorFlowNeuralNetwork(object):
                 producer_op_list=None
             )
         self._graph = graph
+        print("Done")
 
     def set_model_from_file(self, filename, weights_file=None):
         self.__load_graph(filename)
@@ -215,13 +217,14 @@ class ModelNeuralNetwork(object):
         self.framework = framework()
         self.framework.set_model_from_file(model_file_path, weight_file_path)
         self._generic_model = self.framework.get_model()
+        self.result = []
 
 
 class Identification(ModelNeuralNetwork):
     def __init__(self, framework, model_file_path, weight_file_path=None):
         super(Identification, self).__init__(framework, model_file_path, weight_file_path)
         self.file_list = []
-        self.img_width, self.img_height = 32, 32
+        self.img_width, self.img_height = 299, 299
 
     def _images_to_tensor(self, picture):
         """
@@ -251,40 +254,46 @@ class Identification(ModelNeuralNetwork):
             raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), directory_path)
 
     def predict(self):
+
         for test_image in self.file_list:
             result = self._generic_model.predict(self._images_to_tensor(test_image))
-            print("eccomi", result)
-    #
-    # def show_image(self, name, fig, result):
-    #
-    #     # generate figure
-    #     f = plt.figure(figsize=(12, 8))
-    #     # make four subplot with gridspec
-    #     gs = gridspec.GridSpec(2, 2, width_ratios=[1, 1], height_ratios=[2, 1])
-    #     # center in the grid
-    #     ax1 = plt.subplot(gs[0, :])
-    #     ax2 = plt.subplot(gs[1, :])
-    #     # first subplot ax1 display test image passed as argument
-    #     ax1.set_title("Test figure: {:s}".format(name))
-    #     # read the picture and plot
-    #     img = plt.imread(fig)
-    #     ax1.imshow(img)
-    #     # 2nd subplot ax2 display the prediction
-    #     ax2.set_title("Prediction")
-    #     data = {0: 'cat', 1: 'dog'}
-    #     names = list(data.values())  # extract name from dict
-    #     values = result[0]  # extract value from prediction
-    #     rects = ax2.barh(range(len(data)), values * 100, tick_label=names)
-    #     for rect in rects:
-    #         height = rect.get_height()
-    #         ax2.text(rect.get_x() + rect.get_height() / 2., 1.05 * height,
-    #                  '%d' % int(height),
-    #                  ha='center', va='bottom')
-    #
-    #     ax2.set_xlim(0, 100)
-    #     plt.show(block=False)
-    #     plt.pause(0.5)
-    #     # plt.close('all')
+            self.show_image(os.path.basename(test_image),
+                            test_image ,
+                            result)
+
+
+
+            
+    def show_image(self, name, fig, result):
+
+        # generate figure
+        f = plt.figure(figsize=(12, 8))
+        # make four subplot with gridspec
+        gs = gridspec.GridSpec(2, 2, width_ratios=[1, 1], height_ratios=[2, 1])
+        # center in the grid
+        ax1 = plt.subplot(gs[0, :])
+        ax2 = plt.subplot(gs[1, :])
+        # first subplot ax1 display test image passed as argument
+        ax1.set_title("Test figure: {:s}".format(name))
+        # read the picture and plot
+        img = plt.imread(fig)
+        ax1.imshow(img)
+        # 2nd subplot ax2 display the prediction
+        ax2.set_title("Prediction")
+        data = {0: 'cat', 1: 'dog'}
+        names = list(data.values())  # extract name from dict
+        values = result[0]  # extract value from prediction
+        rects = ax2.barh(range(len(data)), values * 100, tick_label=names)
+        for rect in rects:
+            height = rect.get_height()
+            ax2.text(rect.get_x() + rect.get_height() / 2., 1.05 * height,
+                     '%d' % int(height),
+                     ha='center', va='bottom')
+
+        ax2.set_xlim(0, 100)
+        plt.show(block=False)
+        plt.pause(0.5)
+        plt.close('all')
 
     # def __del__(self):
     #   pass
@@ -295,13 +304,13 @@ class Identification(ModelNeuralNetwork):
 
 
 if __name__ == '__main__':
-    test = Identification(framework=KerasNeuralNetwork,
-                          model_file_path="/Users/francesco/PycharmProjects/NeuralNetwork/Model/dogcat.h5")
-    test.load_images("/Users/francesco/Downloads/DogAndCatDataset/test/test_images/1.jpg")
+    #test = Identification(framework=KerasNeuralNetwork,
+                          #model_file_path="/Users/francesco/PycharmProjects/NeuralNetwork/Model/dogcat.h5")
+    #test.load_images("/Users/francesco/Downloads/DogAndCatDataset/test/test_images/1.jpg")
 
-    test.predict()
-    del test
-    tfmodel = "/Users/francesco/PycharmProjects/NeuralNetwork/Model/dogcat.pb"
+    #test.predict()
+    #del test
+    tfmodel = "/Users/francesco/Downloads/Model/vgg16_catedog.pb"
     test2 = Identification(TensorFlowNeuralNetwork, tfmodel)
-    test2.load_images("/Users/francesco/Downloads/DogAndCatDataset/test/test_images/1.jpg")
+    test2.load_images("/Users/francesco/Downloads/DogAndCatDataset/test/test_images/")
     test2.predict()
