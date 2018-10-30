@@ -162,7 +162,7 @@ class MyArgumentParser(object):
         return out_dict
 
 
-if __name__ == '__main__':
+def main():
     # parsing arguments
     args = MyArgumentParser().get_arguments()
     neuralnetwork = FaceRecognition(epochs=args['epochs'],
@@ -187,6 +187,10 @@ if __name__ == '__main__':
     # train fit
     neuralnetwork.train_and_fit_model(name)
     # save model
-    neuralnetwork.save_model_to_file(name=name, extension='.model', export_image=True)
+    neuralnetwork.save_model_to_file(name=name, extension='.h5', export_image=True)
     # clear
     del neuralnetwork
+
+
+if __name__ == '__main__':
+    main()

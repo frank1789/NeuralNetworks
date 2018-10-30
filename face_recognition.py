@@ -18,29 +18,58 @@ from keras.utils import plot_model
 from keras import backend as kbe
 from staticsanalysis import HistoryAnalysis
 
+kbe.set_learning_phase(1)
 # suppress warning and error message tf
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+
 # specify input shape
 kbe.set_image_dim_ordering('tf')
 
+# option gpu
+gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.8, allow_growth=False)
+sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
 
-class FaceRecognition(object):
-    m_train_generator = None
-    m_valid_generator = None
-    m_model = None
-    m_num_train_samples = 0
-    m_num_classes = 0
-    m_num_validate_samples = 0
-    m_model_base_ = None
+# Missing this was the source of one of the most challenging an insidious bugs that I've ever encountered.
+# Without explicitly linking the session the weights for the dense layer added below don't get loaded
+# and so the model returns random results which vary with each model you upload because of random seeds.
+kbe.set_session(sess)
 
-    def __init__(self, epochs, batch_size, learning_rate=0.0001, image_width=224, image_height=224):
-        self.m_epochs = epochs
-        self.m_batch_size = batch_size
-        self.m_lr = learning_rate
-        self.m_image_width = image_width
-        self.m_image_height = image_height
-        self.__pathdir = './Model/'
-        self.__spin = Spinner()
+# print number of available GPU
+print('Available GPU:', len(kbe.tensorflow_backend._get_available_gpus()))
+
+
+class ConvolutionNeuralNetwork(object):
+    @staticmethod
+    def freeze_session(session, keep_var_names=None, output_names=None, clear_devices=True):
+        """
+        Freezes the state of a session into a pruned computation graph.
+
+        Creates a new computation graph where variable nodes are replaced by
+        constants taking their current value in the session. The new graph will be
+        pruned so subgraphs that are not necessary to compute the requested
+        outputs are removed.
+        :param: session The TensorFlow session to be frozen.
+        :param: keep_var_names A list of variable names that should not be frozen,
+                              or None to freeze all the variables in the graph.
+        :param: output_names Names of the relevant graph outputs.
+        :param: clear_devices Remove the device directives from the graph for better portability.
+        :return: The frozen graph definition.
+        """
+        from tensorflow.python.framework.graph_util import convert_variables_to_constants
+        graph = session.graph
+        with graph.as_default():
+            freeze_var_names = list(set(v.op.name for v in tf.global_variables()).difference(keep_var_names or []))
+            output_names = output_names or []
+            output_names += [v.op.name for v in tf.global_variables()]
+            input_graph_def = graph.as_graph_def()
+            if clear_devices:
+                for node in input_graph_def.node:
+                    node.device = ""
+            frozen_graph = convert_variables_to_constants(session,
+                                                          input_graph_def,
+                                                          output_names,
+                                                          freeze_var_names)
+            return frozen_graph
 
     @staticmethod
     def get_num_files(path):
@@ -89,6 +118,24 @@ class FaceRecognition(object):
             horizontal_flip=horizontal_flip
         )
 
+
+class FaceRecognition(ConvolutionNeuralNetwork):
+    m_train_generator = None
+    m_valid_generator = None
+    m_model = None
+    m_num_train_samples = 0
+    m_num_classes = 0
+    m_num_validate_samples = 0
+
+    def __init__(self, epochs, batch_size, learning_rate=0.0001, image_width=224, image_height=224):
+        self.m_epochs = epochs
+        self.m_batch_size = batch_size
+        self.m_lr = learning_rate
+        self.m_image_width = image_width
+        self.m_image_height = image_height
+        self.__pathdir = 'Model'
+        self.__spin = Spinner()
+
     def set_train_generator(self, train_dir):
         """
         Connect the image generator to a folder contains the source images the image generator alters.
@@ -104,6 +151,10 @@ class FaceRecognition(object):
             batch_size=self.m_batch_size,
             seed=42  # set seed for reproducibility
         )
+        print(self.m_train_generator.classes)
+        label_map = (self.m_train_generator.class_indices)
+        label_map2 = dict((v, k) for k, v in label_map.items())  # flip k,v
+        print(label_map2)
 
     def set_valid_generator(self, valid_dir):
         """
@@ -121,15 +172,19 @@ class FaceRecognition(object):
 
     def train_and_fit_model(self, figure_history_name):
         """Train the model"""
-        # Fit
+
+        print('epochs', self.m_epochs,)
+        print('steps_per_epoch' , self.m_num_train_samples // self.m_batch_size,)
+        print('validation_data' , self.m_valid_generator,)
+        print('validation_steps', self.m_num_validate_samples // self.m_batch_size,)
         history = self.m_model.fit_generator(
             self.m_train_generator,
             epochs=self.m_epochs,
             steps_per_epoch=self.m_num_train_samples // self.m_batch_size,
             validation_data=self.m_valid_generator,
             validation_steps=self.m_num_validate_samples // self.m_batch_size,
-            shuffle=True,
-            class_weight='auto', )
+            # shuffle=True,
+            class_weight='auto')
         # print plot training (accuracy vs lost)
         plotter = HistoryAnalysis.plot_history(history, figure_history_name)
 
@@ -181,34 +236,58 @@ class FaceRecognition(object):
         :param export_image: (bool) generate figure schema model
         """
         print("Saving model, please wait")
-        self.__spin.start()
-        if not os.path.exists(self.__pathdir):
-            os.makedirs(self.__pathdir)
+        # self.__spin.start()
+        root_dir = os.getcwd()
+        print("work directory: ", root_dir)
+        dest_dir = os.path.join(root_dir, 'Model')
+        print('destination directory:', dest_dir)
+        if not os.path.exists(dest_dir):
+            os.makedirs(dest_dir)
         # build the name-file
-        filename = os.path.join(self.__pathdir, (name + extension))
+        filename = os.path.join(dest_dir, (name + extension))
         if extension not in ['.h5', '.model', '.json']:
             self.__spin.stop()
             raise ValueError("Invalid extension, supported extensions are: '.h5', '.model', '.json'")
         if extension == '.h5':
             # export complete model with weights
             self.m_model.save(filename)
+            print('Saved model at: ', dest_dir, filename)
         elif extension == '.model':
             # export complete model with weights
             self.m_model.save(filename)
+            print('Saved model at: ', dest_dir, filename)
         elif extension == '.json':
             # save as JSON and weights
             model_json = self.m_model.to_json()
             with open(filename, "w") as json_file:
                 json_file.write(model_json)
+                print('Saved model definition at: ', dest_dir, filename)
             # save weights
-            self.m_model.save_weights(os.path.join(self.__pathdir, (name + '_weights.h5')))
+            namefile_weights = os.path.join(dest_dir, (name + '_weights.h5'))
+            print(namefile_weights)
+            self.m_model.save_weights(namefile_weights)
+            print('Saved model weights at: ', dest_dir, filename)
 
         if export_image:
-            image_name = os.path.join(self.__pathdir, (name + '.png'))
+            image_name = os.path.join(dest_dir, (name + '.png'))
             # print image of schema model
             plot_model(self.m_model, to_file=image_name, show_layer_names=True, show_shapes=True)
 
-        self.__spin.stop()
+        # export as tensorflow .pb
+        # especially when run on Altair PBS system keras return 0 size file
+        frozen_graph = self.freeze_session(kbe.get_session(),
+                                           output_names=[out.op.name for out in self.m_model.outputs])
+
+        f = '{:s}.pb'.format(name)
+        tf.train.write_graph(frozen_graph, dest_dir, f, as_text=False)
+        print('Saved the graph definition at: ', dest_dir, f)
+
+        # Write the graph in human readable
+        f = '{:s}.pb.ascii'.format(name)
+        tf.train.write_graph(sess.graph.as_graph_def(), dest_dir, f, as_text=True)
+        print('Saved the graph definition in ascii format at: ', dest_dir, f)
+
+        # self.__spin.stop()
         print("Done")
 
     def get_pretrained_model(self, pretrained_model, weights='imagenet', include_top=False):
@@ -220,6 +299,8 @@ class FaceRecognition(object):
         :return model_base: (obj) the model select
         :return output: (obj) pre-trained NN weights
         """
+        model_base = None
+        output = None
         if pretrained_model == 'inception':
             model_base = InceptionV3(include_top=include_top,
                                      weights=weights,
@@ -272,7 +353,7 @@ class FaceRecognition(object):
             try:  # check minimum size image
                 # define input model block
                 x_input = Input(self.m_train_generator.image_shape)
-                self.m_model_base_ = x_input
+                model_base = x_input
                 x = (ZeroPadding2D((1, 1), name="InputLayer"))(x_input)
                 # block 1
                 x = (Convolution2D(64, (3, 3), activation='relu', padding="same", name="block1_conv1"))(x)
@@ -327,31 +408,27 @@ class FaceRecognition(object):
 
         elif pretrained_model == 'inception':
             model_base, output = self.get_pretrained_model(pretrained_model, weights, include_top)
-            self.m_model_base_ = model_base.input
             x = GlobalAveragePooling2D()(output)
-            x = Dense(Number_FC_Neurons, activation='relu')(x)  # new FC layer, random init
+            x = Dense(Number_FC_Neurons, activation='relu', name="fc1")(x)  # new FC layer, random init
 
         elif pretrained_model == 'xception':
             model_base, output = self.get_pretrained_model(pretrained_model, weights, include_top)
-            self.m_model_base_ = model_base.input
             # classification block
-            x = Dense(Number_FC_Neurons, activation='relu')(output)  # new FC layer, random init
+            x = Dense(Number_FC_Neurons, activation='relu', name="fc1")(output)  # new FC layer, random init
 
         elif pretrained_model == 'resnet50':
             model_base, output = self.get_pretrained_model(pretrained_model, weights, include_top)
-            self.m_model_base_ = model_base.input
             x = Flatten(name='flatten')(output)
             x = Dropout(0.5)(x)
 
         elif pretrained_model == 'vgg16' or pretrained_model == 'vgg19':
             model_base, output = self.get_pretrained_model(pretrained_model, weights, include_top)
-            self.m_model_base_ = model_base.input
             # classification block
             x = Flatten()(output)
-            x = Dense(Number_FC_Neurons, activation='relu')(x)
+            x = Dense(int(Number_FC_Neurons / 2), activation='relu')(x)
             x = Dropout(0.5)(x)
-            x = Dense(Number_FC_Neurons, activation='relu')(x)
-            x = Dropout(0.5)(x)
+            x = Dense(32, activation='relu')(x)
+            x = Dropout(0.25)(x)
 
         else:
             print("Neural network not available")
@@ -360,7 +437,7 @@ class FaceRecognition(object):
         # common output layer - predictions
         predictions = Dense(self.m_num_classes, activation='softmax', name="predictions")(x)
         # create model instance
-        self.m_model = Model(inputs=self.m_model_base_, outputs=predictions)
+        self.m_model = Model(inputs=model_base.inputs, outputs=predictions)
         # Layers - set trainable parameters
         print("Total layers: {:10d}".format(len(self.m_model.layers)))
         if trainable_parameters:
@@ -388,24 +465,5 @@ class FaceRecognition(object):
 
     def __del__(self):
         del self.m_model
-        del self.m_model_base_
         del self.m_train_generator
         del self.__spin
-
-
-if __name__ == '__main__':
-    train_folder = r'/Users/francesco/PycharmProjects/KerasTest/data/train'
-    valid_folder = r'/Users/francesco/PycharmProjects/KerasTest/data/validate'
-    test = FaceRecognition(epochs=10, batch_size=32, image_width=48, image_height=48)
-    test.create_img_generator()
-    test.set_train_generator(
-        train_dir=train_folder)
-    test.set_valid_generator(
-        valid_dir=valid_folder)
-
-    # prepare the model
-    test.set_face_recognition_model(pretrained_model='vgg16', weights='imagenet', include_top=False)
-
-    # train fit
-    test.train_and_fit_model()
-    quit(0)
