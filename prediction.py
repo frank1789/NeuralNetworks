@@ -348,6 +348,6 @@ if __name__ == '__main__':
     del test
     tfmodel = "/Users/francesco/Downloads/Model/vgg16_catedog.pb"
     test2 = Identification(TensorFlowNeuralNetwork,
-                       '/Users/francesco/PycharmProjects/NeuralNetwork/Model/config_dogcat.json', tfmodel)
+                       '/Users/francesco/PycharmProjects/NeuralNetwork/Model/config_dogcat2.json', tfmodel)
     test2.load_images("/Users/francesco/Downloads/DogAndCatDataset/test/test_images/")
     test2.predict()
