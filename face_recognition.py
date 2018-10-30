@@ -472,6 +472,7 @@ class FaceRecognition(ConvolutionNeuralNetwork):
             self.m_model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
             # store configuration compiler
             self.m_config["optimizer"] = 'adam'
+            self.m_config["momentum"] = 0 # not set
             self.m_config["loss"] = 'categorical_crossentropy'
             self.m_config["metrics"] = ['accuracy']
 

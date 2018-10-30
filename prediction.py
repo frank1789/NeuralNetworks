@@ -32,6 +32,12 @@ class KerasNeuralNetwork(object):
         return "KerasNeuralNetwork"
 
     def set_model_from_file(self, filename, weights_file=None, config_compiler=None):
+        """
+        Read from file the correct model.
+        :param filename: (str) model file model path
+        :param weights_file: (str) weight file path - optional
+        :param config_compiler: (str) configuration from training - optional
+        """
         self.__load_model_from_file(filename, weights_file)
         self._config = config_compiler
 
@@ -39,6 +45,12 @@ class KerasNeuralNetwork(object):
         """
         Before you will predict the result for a new given input you have to invoke compile method.
         After compiling, you're done to deal with new images.
+        _config -> tuple
+        _config[0] = compiler name
+        _config[1] = learning rate
+        _config[2] = momentum
+        _config[3] = loss category
+        _config[4] = metrics
         """
         if self._config[0] == 'SGD':
             self._model.compile(optimizer=SGD(lr=self._config[1], momentum=self._config[2]),
@@ -151,6 +163,12 @@ class TensorFlowNeuralNetwork(object):
         print("Done")
 
     def set_model_from_file(self, filename, weights_file=None, config_compiler=None):
+        """
+        Read from file the correct model.
+        :param filename: (str) model file model path
+        :param weights_file: (str) weight file path - optional
+        :param config_compiler: (str) configuration from training - optional
+        """
         self.__load_graph(filename)
 
     def get_model(self):
