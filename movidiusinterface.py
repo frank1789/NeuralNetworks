@@ -11,7 +11,7 @@ from mvnc import mvncapi as fx
 class MovidiusInterface():
     def __init__(self):
         # set the logging level for the NC API
-        fx.SetGlobalOption(fx.GlobalOption.LOG_LEVEL, 0)
+        fx.global_set_option(fx.GlobalOption.RW_LOG_LEVEL, 0)
         # get a list of names for all the devices plugged into the system
         ncs_names = fx.EnumerateDevices()
         if (len(ncs_names) < 1):
