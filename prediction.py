@@ -329,12 +329,8 @@ class Identification(ModelNeuralNetwork):
         plt.pause(0.5)
         plt.close('all')
 
-    # def __del__(self):
-    #   pass
-    # self.file_list.clear()
-    #
-    # del self.session
-    # del self.model
+    def __del__(self):
+        self.file_list.clear()
 
 
 if __name__ == '__main__':
