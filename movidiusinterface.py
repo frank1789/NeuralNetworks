@@ -3,6 +3,8 @@
 
 # Python script to open and close a single NCS device API v2
 from mvnc import mvncapi
+import os
+import errno
 
 
 # main entry point for the program
@@ -46,16 +48,28 @@ class GraphNeuralNetwork(MovidiusInterface):
     def __str__(self):
         return "GraphNeuralNetwork"
 
-    def load_graph(self):
+    def set_model_from_file(self, filename, weights_file=None, config_compiler=None):
+        """
+        Read from file the correct model.
+        :param filename: (str) model file model path
+        :param weights_file: (str) weight file path - optional
+        :param config_compiler: (str) configuration from training - optional
+        """
+        self.__load_graph(filename)
+
+    def __load_graph(self, filename):
         """
         Load a graph file onto the NCS device
         :return:
         """
         # Read the graph file into a buffer
-        with open(ARGS.graph, mode='rb') as f:
+        if not os.path.exists(filename) or not filename.endswith(".graph"):
+            raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), filename)
+
+        with open(filename, mode='rb') as f:
             blob = f.read()
         # Load the graph buffer into the NCS
-        self.graph = mvnc.Graph(ARGS.graph)
+        self.graph = mvnc.Graph(filename)
         # Set up fifos
         self.__fifo_in, self.__fifo_out = self.graph.allocate_with_fifos(self._device, blob)
 
