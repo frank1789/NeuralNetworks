@@ -3,8 +3,9 @@
 
 import os
 import sys
-from utilityfunction import Spinner
 import errno
+import json
+from utilityfunction import Spinner
 import tensorflow as tf
 from keras.models import Model, model_from_json, load_model
 from keras.layers import Dropout, Flatten, Dense, Input
@@ -126,6 +127,7 @@ class FaceRecognition(ConvolutionNeuralNetwork):
     m_num_train_samples = 0
     m_num_classes = 0
     m_num_validate_samples = 0
+    m_config = {}
 
     def __init__(self, epochs, batch_size, learning_rate=0.0001, image_width=224, image_height=224):
         self.m_epochs = epochs
@@ -135,6 +137,12 @@ class FaceRecognition(ConvolutionNeuralNetwork):
         self.m_image_height = image_height
         self.__pathdir = 'Model'
         self.__spin = Spinner()
+        # export config data in dict
+        self.m_config["epochs"] = self.m_epochs
+        self.m_config["batch_size"] = self.m_batch_size
+        self.m_config["learning_rate"] = self.m_lr
+        self.m_config["image_width"] = self.m_image_width
+        self.m_config["image_height"] = self.m_image_height
 
     def set_train_generator(self, train_dir):
         """
@@ -151,10 +159,9 @@ class FaceRecognition(ConvolutionNeuralNetwork):
             batch_size=self.m_batch_size,
             seed=42  # set seed for reproducibility
         )
-        print(self.m_train_generator.classes)
-        label_map = (self.m_train_generator.class_indices)
-        label_map2 = dict((v, k) for k, v in label_map.items())  # flip k,v
-        print(label_map2)
+        label_map = self.m_train_generator.class_indices
+        label_map_ = dict((v, k) for k, v in label_map.items())  # flip k,v
+        self.m_config["label_map"] = label_map_
 
     def set_valid_generator(self, valid_dir):
         """
@@ -173,10 +180,10 @@ class FaceRecognition(ConvolutionNeuralNetwork):
     def train_and_fit_model(self, figure_history_name):
         """Train the model"""
 
-        print('epochs', self.m_epochs,)
-        print('steps_per_epoch' , self.m_num_train_samples // self.m_batch_size,)
-        print('validation_data' , self.m_valid_generator,)
-        print('validation_steps', self.m_num_validate_samples // self.m_batch_size,)
+        print('epochs', self.m_epochs, )
+        print('steps_per_epoch', self.m_num_train_samples // self.m_batch_size, )
+        print('validation_data', self.m_valid_generator, )
+        print('validation_steps', self.m_num_validate_samples // self.m_batch_size, )
         history = self.m_model.fit_generator(
             self.m_train_generator,
             epochs=self.m_epochs,
@@ -288,6 +295,7 @@ class FaceRecognition(ConvolutionNeuralNetwork):
         print('Saved the graph definition in ascii format at: ', dest_dir, f)
 
         # self.__spin.stop()
+        self.__export_configuration(dest_dir, name)
         print("Done")
 
     def get_pretrained_model(self, pretrained_model, weights='imagenet', include_top=False):
@@ -453,15 +461,33 @@ class FaceRecognition(ConvolutionNeuralNetwork):
 
         # compile the  model
         if self.m_num_classes == 2:
-            self.m_model.compile(optimizer=SGD(lr=0.0001, momentum=0.9),
+            self.m_model.compile(optimizer=SGD(lr=self.m_lr, momentum=0.9),
                                  loss='categorical_crossentropy', metrics=['accuracy'])
+            # store configuration compiler
+            self.m_config["optimizer"] = "SGD"
+            self.m_config["momentum"] = 0.9
+            self.m_config["loss"] = 'categorical_crossentropy'
+            self.m_config["metrics"] = ['accuracy']
         else:
-            self.m_model.compile(optimizer='adam',
-                                 loss='categorical_crossentropy', metrics=['accuracy'])
+            self.m_model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+            # store configuration compiler
+            self.m_config["optimizer"] = 'adam'
+            self.m_config["momentum"] = 0 # not set
+            self.m_config["loss"] = 'categorical_crossentropy'
+            self.m_config["metrics"] = ['accuracy']
 
         # print model structure diagram
         print(self.m_model.summary())
         return self
+
+    def __export_configuration(self, dest_dir, filename):
+        """
+        eport data of configuration and label for prediciton
+        :param filename: (str) filename
+        """
+        outfile = os.path.join(dest_dir, "config_{:s}.json".format(filename))
+        with open(outfile, 'w') as fp:
+            json.dump(self.m_config, fp, indent=4)
 
     def __del__(self):
         del self.m_model

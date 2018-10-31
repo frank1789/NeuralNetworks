@@ -1,14 +1,15 @@
 import os
 import errno
+import json
+import glob
+import numpy as np
+from utilityfunction import Spinner
 import tensorflow as tf
 from keras.optimizers import SGD
-import numpy as np
 from keras.models import load_model, model_from_json
 from keras.preprocessing import image
-import glob
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
-from utilityfunction import Spinner
 
 # suppress warning and error message tf
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -25,22 +26,40 @@ class KerasNeuralNetwork(object):
     def __init__(self):
         self.__spin = Spinner()
         self._model = None
+        self._config = None
 
     def __str__(self):
         return "KerasNeuralNetwork"
+
+    def set_model_from_file(self, filename, weights_file=None, config_compiler=None):
+        """
+        Read from file the correct model.
+        :param filename: (str) model file model path
+        :param weights_file: (str) weight file path - optional
+        :param config_compiler: (str) configuration from training - optional
+        """
+        self.__load_model_from_file(filename, weights_file)
+        self._config = config_compiler
 
     def __compile_keras_model(self):
         """
         Before you will predict the result for a new given input you have to invoke compile method.
         After compiling, you're done to deal with new images.
+        _config -> tuple
+        _config[0] = compiler name
+        _config[1] = learning rate
+        _config[2] = momentum
+        _config[3] = loss category
+        _config[4] = metrics
         """
-        self._model.compile(optimizer=SGD(lr=0.0001, momentum=0.9),
-                            loss='categorical_crossentropy',
-                            metrics=['accuracy'])
-        return self
+        if self._config[0] == 'SGD':
+            self._model.compile(optimizer=SGD(lr=self._config[1], momentum=self._config[2]),
+                                loss=self._config[3],
+                                metrics=self._config[4])
+        else:
+            self._model.compile(optimizer=self._config[0], loss=self._config[3], metrics=self._config[4])
 
-    def set_model_from_file(self, filename, weights_file=None):
-        self.__load_model_from_file(filename, weights_file)
+        return self
 
     def __load_model_from_file(self, filename, weights_file=None):
         """
@@ -86,8 +105,7 @@ class KerasNeuralNetwork(object):
         Returns the completed keras model before start prediction
         :return: model
         """
-        self.__compile_keras_model()
-        return self._model
+        return self
 
     def predict(self, test_image):
         """
@@ -144,7 +162,13 @@ class TensorFlowNeuralNetwork(object):
         self._graph = graph
         print("Done")
 
-    def set_model_from_file(self, filename, weights_file=None):
+    def set_model_from_file(self, filename, weights_file=None, config_compiler=None):
+        """
+        Read from file the correct model.
+        :param filename: (str) model file model path
+        :param weights_file: (str) weight file path - optional
+        :param config_compiler: (str) configuration from training - optional
+        """
         self.__load_graph(filename)
 
     def get_model(self):
@@ -213,16 +237,29 @@ class ModelNeuralNetwork(object):
     - Intel Movidius ('.graph)
     """
 
-    def __init__(self, framework, model_file_path, weight_file_path=None):
+    def __init__(self, framework, config_file_path, model_file_path, weight_file_path=None):
+        # import configuration file
+        with open(config_file_path, "r") as read_file:
+            data = json.load(read_file)
+
+        # init param
+        self._img_width = data["image_width"]
+        self._img_height = data["image_height"]
+        self._label_map = data["label_map"]
+        config_compiler = (data["optimizer"], data["learning_rate"], data["momentum"], data["loss"], data["metrics"])
+
+        # init framework
         self.framework = framework()
-        self.framework.set_model_from_file(model_file_path, weight_file_path)
+        self.framework.set_model_from_file(model_file_path, weight_file_path, config_compiler)
         self._generic_model = self.framework.get_model()
         self.result = []
+        if not os.path.exists(config_file_path):
+            raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), config_file_path)
 
 
 class Identification(ModelNeuralNetwork):
-    def __init__(self, framework, model_file_path, weight_file_path=None):
-        super(Identification, self).__init__(framework, model_file_path, weight_file_path)
+    def __init__(self, framework, config_file_path, model_file_path, weight_file_path=None):
+        super(Identification, self).__init__(framework, config_file_path, model_file_path, weight_file_path)
         self.file_list = []
         self.img_width, self.img_height = 299, 299
 
@@ -232,7 +269,7 @@ class Identification(ModelNeuralNetwork):
         :param picture: (str) picture's path
         :return: (numpy array) codified pictures
         """
-        test_image = image.load_img(picture, target_size=(self.img_width, self.img_height))
+        test_image = image.load_img(picture, target_size=(self._img_width, self._img_height))
         test_image = image.img_to_array(test_image)
         test_image = np.expand_dims(test_image, axis=0)
         return test_image
@@ -258,12 +295,9 @@ class Identification(ModelNeuralNetwork):
         for test_image in self.file_list:
             result = self._generic_model.predict(self._images_to_tensor(test_image))
             self.show_image(os.path.basename(test_image),
-                            test_image ,
+                            test_image,
                             result)
 
-
-
-            
     def show_image(self, name, fig, result):
 
         # generate figure
@@ -280,7 +314,7 @@ class Identification(ModelNeuralNetwork):
         ax1.imshow(img)
         # 2nd subplot ax2 display the prediction
         ax2.set_title("Prediction")
-        data = {0: 'cat', 1: 'dog'}
+        data = self._label_map
         names = list(data.values())  # extract name from dict
         values = result[0]  # extract value from prediction
         rects = ax2.barh(range(len(data)), values * 100, tick_label=names)
@@ -295,22 +329,21 @@ class Identification(ModelNeuralNetwork):
         plt.pause(0.5)
         plt.close('all')
 
-    # def __del__(self):
-    #   pass
-    # self.file_list.clear()
-    #
-    # del self.session
-    # del self.model
+    def __del__(self):
+        self.file_list.clear()
 
 
 if __name__ == '__main__':
-    #test = Identification(framework=KerasNeuralNetwork,
-                          #model_file_path="/Users/francesco/PycharmProjects/NeuralNetwork/Model/dogcat.h5")
-    #test.load_images("/Users/francesco/Downloads/DogAndCatDataset/test/test_images/1.jpg")
+    test = Identification(framework=KerasNeuralNetwork,
+                          config_file_path='/Users/francesco/PycharmProjects/NeuralNetwork/Model/config_dogcat.json',
+                          model_file_path='/Users/francesco/PycharmProjects/NeuralNetwork/Model/dogcat.h5')
+    # model_file_path="/Users/francesco/PycharmProjects/NeuralNetwork/Model/dogcat.h5")
+    test.load_images("/Users/francesco/Downloads/DogAndCatDataset/test/test_images/1.jpg")
 
-    #test.predict()
-    #del test
+    test.predict()
+    del test
     tfmodel = "/Users/francesco/Downloads/Model/vgg16_catedog.pb"
-    test2 = Identification(TensorFlowNeuralNetwork, tfmodel)
+    test2 = Identification(TensorFlowNeuralNetwork,
+                       '/Users/francesco/PycharmProjects/NeuralNetwork/Model/config_dogcat2.json', tfmodel)
     test2.load_images("/Users/francesco/Downloads/DogAndCatDataset/test/test_images/")
     test2.predict()
