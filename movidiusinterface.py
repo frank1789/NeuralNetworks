@@ -1,35 +1,43 @@
 #! /usr/bin/env python3
+#! -*- coding:utf-8 -*-
 
-# Copyright(c) 2017 Intel Corporation.
-# License: MIT See LICENSE file in root directory.
-
-# Python script to open and close a single NCS device
-from mvnc import mvncapi as fx
+# Python script to open and close a single NCS device API v2
+from mvnc import mvncapi
 
 
 # main entry point for the program
 class MovidiusInterface():
     def __init__(self):
         # set the logging level for the NC API
-        fx.global_set_option(fx.GlobalOption.RW_LOG_LEVEL, 0)
+        mvncapi.global_set_option(mvncapi.GlobalOption.RW_LOG_LEVEL, 0)
         # get a list of names for all the devices plugged into the system
-        ncs_names = fx.EnumerateDevices()
-        if (len(ncs_names) < 1):
-            raise Exception("Error - no NCS devices detected, verify an NCS device is connected.")
+        device_list = mvncapi.enumerate_devices()
+        if not device_list:
+            raise Exception("Error - No neural compute devices detected.")
 
-        # get the first NCS device by its name.  For this program we will always open the first NCS device.
-        self.dev = fx.Device(ncs_names[0])
+        else:
+            print(len(device_list), "neural compute devices found!")
 
+
+        # Get a list of valid device identifiers
+        device_list = mvncapi.enumerate_devices()
+        # Create a Device instance for the first device found
+        self.device = mvncapi.Device(device_list[0])
+        # Open communication with the device
         # try to open the device.  this will throw an exception if someone else has it open already
         try:
-            self.dev.OpenDevice()
+            self.device.open()
             print("Hello NCS! Device opened normally.")
         except:
             raise Exception("Error - Could not open NCS device.")
 
+
+
     def __del__(self):
         try:
-            self.dev.CloseDevice()
+            # Close the device and destroy the device handle
+            self.device.close()
+            self.device.destroy()
             print("Goodbye NCS! Device closed normally.")
             print("NCS device working.")
         except:
