@@ -34,3 +34,6 @@ class MovidiusInterface():
             print("NCS device working.")
         except:
             raise Exception("Error - could not close NCS device.")
+
+
+a = MovidiusInterface()
