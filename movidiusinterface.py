@@ -41,7 +41,7 @@ class GraphNeuralNetwork(MovidiusInterface):
     graph = None
 
     def __init__(self):
-        pass
+        super(GraphNeuralNetwork, self).__init__()
 
     def __str__(self):
         return "GraphNeuralNetwork"
@@ -138,4 +138,4 @@ class GraphNeuralNetwork(MovidiusInterface):
             raise Exception("Error - could not close NCS device.")
 
 
-a = MovidiusInterface()
+a = GraphNeuralNetwork()
