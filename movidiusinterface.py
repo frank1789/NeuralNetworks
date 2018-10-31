@@ -1,5 +1,5 @@
 #! /usr/bin/env python3
-# ! -*- coding:utf-8 -*-
+# -*- coding:utf-8 -*-
 
 # Python script to open and close a single NCS device API v2
 from mvnc import mvncapi
