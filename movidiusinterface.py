@@ -125,9 +125,12 @@ class GraphNeuralNetwork(MovidiusInterface):
         Close and clean up fifos, graph
         :param self:
         """
-        self.__fifo_in.destroy()
-        self.__fifo_out.destroy()
-        self.graph.destroy()
+        if self.__fifo_in is not None:
+            self.__fifo_in.destroy()
+        if self.__fifo_out is not None:
+            self.__fifo_out.destroy()
+        if self.graph.destroy() is not None:
+            self.graph.destroy()
         # Close the device and destroy the device handle
         try:
             self._device.close()
