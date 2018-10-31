@@ -129,7 +129,7 @@ class GraphNeuralNetwork(MovidiusInterface):
             self.__fifo_in.destroy()
         if self.__fifo_out is not None:
             self.__fifo_out.destroy()
-        if self.graph.destroy() is not None:
+        if self.graph is not None:
             self.graph.destroy()
         # Close the device and destroy the device handle
         try:
