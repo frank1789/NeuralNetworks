@@ -4,8 +4,9 @@
 # License: MIT See LICENSE file in root directory.
 
 # Python script to open and close a single NCS device
-
-import mvnc.mvncapi as fx
+import sys
+sys.path.insert(0, "../../ncapi2_shim")
+import mvnc_simple_api as fx
 
 
 # main entry point for the program
