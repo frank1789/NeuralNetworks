@@ -119,7 +119,7 @@ class GraphNeuralNetwork(MovidiusInterface):
         :param test_image:
         """
         # Load the labels file
-        labels = [line.rstrip('\n') for line in open(ARGS.labels) if line != 'classes\n']
+        #labels = [line.rstrip('\n') for line in open(ARGS.labels) if line != 'classes\n']
 
         # The first inference takes an additional ~20ms due to memory
         # initializations, so we make a 'dummy forward pass'.
@@ -137,9 +137,10 @@ class GraphNeuralNetwork(MovidiusInterface):
         # Get the results from NCS
         output, userobj = self.__fifo_out.read_elem()
         # Sort the indices of top predictions
-        order = output.argsort()[::-1][:NUM_PREDICTIONS]
+        #order = output.argsort()[::-1][:NUM_PREDICTIONS]
         # Get execution time
-        inference_time = self.graph.get_option(mvnc.GraphOption.RO_TIME_TAKEN)
+        inference_time = self.graph.get_option(mvncapi.GraphOption.RO_TIME_TAKEN)
+        print(inference_time)
 
         # # Print the results
         # print("\n==============================================================")
@@ -156,7 +157,7 @@ class GraphNeuralNetwork(MovidiusInterface):
         # skimage.io.show()
         return output
 
-    def clear_device(self):
+    def __del__(self):
         """
         Close and clean up fifos, graph
         :param self:
@@ -177,4 +178,5 @@ class GraphNeuralNetwork(MovidiusInterface):
             raise Exception("Error - could not close NCS device.")
 
 
-a = GraphNeuralNetwork()
+if __name__ == '__main__':
+    a = GraphNeuralNetwork()
