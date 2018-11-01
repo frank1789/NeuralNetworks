@@ -38,9 +38,6 @@ class KerasNeuralNetwork(object):
     def __str__(self):
         return "KerasNeuralNetwork"
 
-    def __call__(self):
-        pass
-
     def set_model_from_file(self, filename, weights_file=None, config_compiler=None):
         """
         Read from file the correct model.
@@ -459,4 +456,3 @@ if __name__ == '__main__':
     test.predict()
     del test
     quit()
-
