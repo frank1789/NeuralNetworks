@@ -24,10 +24,13 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 class KerasNeuralNetwork(object):
     """
-    KerasNeuralNetwork class is used to read a neural network model trained with Keras and provides several methods for
-    importing a file in format: '.model', '.h5' and '.json'.
-    Furthermore, before starting a new prediction, fill out the model according to the parameters used during the
-    training.
+    KerasNeuralNetwork class is used to read a neural network model trained with
+    Keras and provides several methods for importing a file in format:
+     - '.model';
+     - '.h5';
+     - '.json'.
+    Furthermore, before starting a new prediction, fill out the model according
+    to the parameters used during the training.
     """
 
     def __init__(self):
@@ -50,7 +53,8 @@ class KerasNeuralNetwork(object):
 
     def __compile_keras_model(self):
         """
-        Before you will predict the result for a new given input you have to invoke compile method.
+        Before you will predict the result for a new given input you have to
+        invoke compile method.
         After compiling, you're done to deal with new images.
         _config -> tuple
         _config[0] = compiler name
@@ -71,7 +75,8 @@ class KerasNeuralNetwork(object):
     def __load_model_from_file(self, filename, weights_file=None):
         """
         Import trained model store as 1 file ('.model', '.h5')
-        Or import the schema model in format 'json' and weights's file in format h5.
+        Or import the schema model in format 'json' and weights's file in
+        format h5.
         :param filename: (str) pass path model file
         :param weights_file: (str) pass path weights file
         """
@@ -132,10 +137,11 @@ class KerasNeuralNetwork(object):
 
 class TensorFlowNeuralNetwork(object):
     """
-    TensorFlowNeuralNetwork class is used to read a neural network model trained with TensorFlow and provides several
-    methods for importing a file in format: '.pb', #TODO add others
-    Furthermore, before starting a new prediction, fill out the model according to the parameters used during the
-    training.
+    TensorFlowNeuralNetwork class is used to read a neural network model trained
+    with TensorFlow and provides several methods for importing a file
+    in format: '.pb'.
+    Furthermore, before starting a new prediction, fill out the model according
+    to the parameters used during the training.
     """
 
     def __init__(self):
@@ -146,7 +152,8 @@ class TensorFlowNeuralNetwork(object):
 
     def __load_graph(self, model_path):
         """
-        We load the protobuf file from the disk and parse it to retrieve the unserialized graph_def.
+        We load the protobuf file from the disk and parse it to retrieve the
+        unserialized graph_def.
         :param model_path: (str) model's folder path
         :return: graph
         """
@@ -238,7 +245,8 @@ class TensorFlowNeuralNetwork(object):
 
 class ModelNeuralNetwork(object):
     """
-    Design Pattern Class to instantiate the correct class to decode previously trained models currently supports:
+    Design Pattern Class to instantiate the correct class to decode previously
+    trained models currently supports:
     - Keras ('.h5', '.model', '.json')
     - TensorFlow ('.pb', protobuff)
     - Intel Movidius ('.graph)
@@ -282,7 +290,8 @@ class Identification(ModelNeuralNetwork):
 
     def load_images(self, directory_path):
         """
-        This method accepts uploading images or folders to predict and test new images
+        This method accepts uploading images or folders to predict and test new
+        images.
         :param directory_path: (str) picture's folder/path
         :return:
         """
