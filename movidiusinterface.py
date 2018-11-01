@@ -7,8 +7,21 @@ import os
 import errno
 
 
+
+class Singleton(type):
+    _instances = {}
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+
+
+
+
+
 # main entry point for the program
-class MovidiusInterface(object):
+class MovidiusInterface(metaclass=Singleton):
     def __init__(self):
         # set the logging level for the NC API
         mvncapi.global_set_option(mvncapi.GlobalOption.RW_LOG_LEVEL, mvncapi.LogLevel.WARN)
@@ -57,19 +70,27 @@ class GraphNeuralNetwork(MovidiusInterface):
         """
         self.__load_graph(filename)
 
+    def get_model(self):
+        """
+        Returns the completed keras model before start prediction
+        :return model: (object)
+            """
+        return self
+
     def __load_graph(self, filename):
         """
         Load a graph file onto the NCS device
         :return:
         """
         # Read the graph file into a buffer
-        if not os.path.exists(filename) or not filename.endswith(".graph"):
-            raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), filename)
+        if not os.path.exists(filename):
+            if filename.endswith(".graph"):
+                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), filename)
 
         with open(filename, mode='rb') as f:
             blob = f.read()
         # Load the graph buffer into the NCS
-        self.graph = mvnc.Graph(filename)
+        self.graph = mvncapi.Graph(filename)
         # Set up fifos
         self.__fifo_in, self.__fifo_out = self.graph.allocate_with_fifos(self._device, blob)
 
@@ -92,10 +113,10 @@ class GraphNeuralNetwork(MovidiusInterface):
 
     # ---- Step 4: Read & print inference results from the NCS -------------------
 
-    def infer_image(self, img):
+    def predict(self, test_image):
         """
         Read & print inference results from the NCS
-        :param img:
+        :param test_image:
         """
         # Load the labels file
         labels = [line.rstrip('\n') for line in open(ARGS.labels) if line != 'classes\n']
@@ -104,14 +125,14 @@ class GraphNeuralNetwork(MovidiusInterface):
         # initializations, so we make a 'dummy forward pass'.
         self.graph.queue_inference_with_fifo_elem(self.__fifo_in,
                                                   self.__fifo_out,
-                                                  img.astype(numpy.float32),
+                                                  test_image,
                                                   None)
         output, userobj = self.__fifo_out.read_elem()
 
         # Load the image as an array
         self.graph.queue_inference_with_fifo_elem(self.__fifo_in,
                                                   self.__fifo_out,
-                                                  img.astype(numpy.float32),
+                                                  test_image,
                                                   None)
         # Get the results from NCS
         output, userobj = self.__fifo_out.read_elem()
@@ -120,21 +141,22 @@ class GraphNeuralNetwork(MovidiusInterface):
         # Get execution time
         inference_time = self.graph.get_option(mvnc.GraphOption.RO_TIME_TAKEN)
 
-        # Print the results
-        print("\n==============================================================")
-        print("Top predictions for", ntpath.basename(ARGS.image))
-        print("Execution time: " + str(numpy.sum(inference_time)) + "ms")
-        print("--------------------------------------------------------------")
-        for i in range(0, NUM_PREDICTIONS):
-            print("%3.1f%%\t" % (100.0 * output[order[i]]) + labels[order[i]])
-        print("==============================================================")
+        # # Print the results
+        # print("\n==============================================================")
+        # print("Top predictions for", ntpath.basename(ARGS.image))
+        # print("Execution time: " + str(numpy.sum(inference_time)) + "ms")
+        # print("--------------------------------------------------------------")
+        # for i in range(0, NUM_PREDICTIONS):
+        #     print("%3.1f%%\t" % (100.0 * output[order[i]]) + labels[order[i]])
+        # print("==============================================================")
+        #
+        # # If a display is available, show the image on which inference was performed
+        # if 'DISPLAY' in os.environ:
+        #     skimage.io.imshow(ARGS.image)
+        # skimage.io.show()
+        return output
 
-        # If a display is available, show the image on which inference was performed
-        if 'DISPLAY' in os.environ:
-            skimage.io.imshow(ARGS.image)
-        skimage.io.show()
-
-    def __del__(self):
+    def clear_device(self):
         """
         Close and clean up fifos, graph
         :param self:
