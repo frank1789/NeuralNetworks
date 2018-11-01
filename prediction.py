@@ -3,6 +3,7 @@ import errno
 import json
 import glob
 import numpy as np
+from movidiusinterface import MovidiusInterface, GraphNeuralNetwork
 from utilityfunction import Spinner
 import tensorflow as tf
 from keras.optimizers import SGD
@@ -261,7 +262,6 @@ class Identification(ModelNeuralNetwork):
     def __init__(self, framework, config_file_path, model_file_path, weight_file_path=None):
         super(Identification, self).__init__(framework, config_file_path, model_file_path, weight_file_path)
         self.file_list = []
-        self.img_width, self.img_height = 299, 299
 
     def _images_to_tensor(self, picture):
         """
