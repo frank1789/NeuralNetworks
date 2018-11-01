@@ -3,7 +3,11 @@ import errno
 import json
 import glob
 import numpy as np
-from movidiusinterface import MovidiusInterface, GraphNeuralNetwork
+import platform
+
+a = platform.system()
+print(a)
+# from movidiusinterface import GraphNeuralNetwork
 from utilityfunction import Spinner
 import tensorflow as tf
 from keras.optimizers import SGD
@@ -11,6 +15,8 @@ from keras.models import load_model, model_from_json
 from keras.preprocessing import image
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
+import argparse
+import sys
 
 # suppress warning and error message tf
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -31,6 +37,9 @@ class KerasNeuralNetwork(object):
 
     def __str__(self):
         return "KerasNeuralNetwork"
+
+    def __call__(self):
+        pass
 
     def set_model_from_file(self, filename, weights_file=None, config_compiler=None):
         """
@@ -194,7 +203,7 @@ class TensorFlowNeuralNetwork(object):
         #     # ...
         #     # prefix/Accuracy/predictions
         #
-        x = self._graph.get_tensor_by_name('prefix/input_1:0')
+        x = self._graph.get_tensor_by_name('input_1:0')
         return x
 
     def get_output_tenor(self):
@@ -212,7 +221,7 @@ class TensorFlowNeuralNetwork(object):
         #     # ...
         #     # prefix/Accuracy/predictions
         #
-        y = self._graph.get_tensor_by_name('prefix/predictions/Softmax:0')
+        y = self._graph.get_tensor_by_name('predictions/Softmax:0')
         return y
 
     def predict(self, test_image):
@@ -333,17 +342,121 @@ class Identification(ModelNeuralNetwork):
         self.file_list.clear()
 
 
-if __name__ == '__main__':
-    test = Identification(framework=KerasNeuralNetwork,
-                          config_file_path='/Users/francesco/PycharmProjects/NeuralNetwork/Model/config_dogcat.json',
-                          model_file_path='/Users/francesco/PycharmProjects/NeuralNetwork/Model/dogcat.h5')
-    # model_file_path="/Users/francesco/PycharmProjects/NeuralNetwork/Model/dogcat.h5")
-    test.load_images("/Users/francesco/Downloads/DogAndCatDataset/test/test_images/1.jpg")
+class MyArgumentParser(object):
 
+    @staticmethod
+    def title():
+        print(".------..------..------..------..------..------..------.")
+        print("|P.--. ||R.--. ||E.--. ||D.--. ||I.--. ||C.--. ||T.--. |")
+        print("| :/\: || :(): || (\/) || :/\: || (\/) || :/\: || :/\: |")
+        print("| (__) || ()() || :\/: || (__) || :\/: || :\/: || (__) |")
+        print("| '--'P|| '--'R|| '--'E|| '--'D|| '--'I|| '--'C|| '--'T|")
+        print("'------'`------'`------'`------'`------'`------'`------'")
+
+    def __init__(self):
+        self.title()
+        self.parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+                                              description='You can make predictions using a trained neural'
+                                                          ' network for deep learning.')
+
+        self.parser.add_argument('--configfile',
+                                 action='store',
+                                 dest='configfile',
+                                 type=str,
+                                 help='requires path of configuration file generated during training.')
+        self.parser.add_argument('--model',
+                                 action='store',
+                                 dest='modelfile',
+                                 type=str,
+                                 help='requires path of model file')
+        self.parser.add_argument('--weights',
+                                 action='store',
+                                 dest='weights',
+                                 type=str,
+                                 required=False,
+                                 help='requires path of weights model file')
+        self.parser.add_argument('--test',
+                                 action='store',
+                                 dest='testfolder',
+                                 type=str,
+                                 required=False,
+                                 help='requires path test folder')
+        self.args = {}
+        self.__check_input_args()
+
+    def __check_input_args(self):
+        optional = self.parser.parse_args()
+        # check config file
+        if optional.configfile is not None:
+            self.args['configfile'] = optional.configfile
+
+        else:
+            self.parser.print_help()
+            sys.exit()
+
+        # check presence model file
+        if optional.modelfile is not None:
+            self.args['model'] = optional.modelfile
+
+        else:
+            self.parser.print_help()
+            sys.exit()
+
+        # check presence test folder/file
+        if optional.testfolder is not None:
+            self.args['test'] = optional.testfolder
+
+        else:
+            self.parser.print_help()
+            sys.exit()
+
+        self.args['weights'] = optional.weights
+
+    def get_arguments(self):
+        """
+        Return parsed argument
+        :return: (dict) with input user
+        """
+        return self.args
+
+    def __del__(self):
+        self.args.clear()
+
+
+if __name__ == '__main__':
+    # parsing argument
+    parse = MyArgumentParser()
+    parsed = parse.get_arguments()
+
+    # check type of model
+    filename, file_extension = os.path.splitext(parsed['model'])
+    if file_extension in ['.h5', '.model', '.json']:
+        if parsed is None:
+            test = Identification(framework=KerasNeuralNetwork,
+                                  config_file_path=parsed['configfile'],
+                                  model_file_path=parsed['model'])
+        else:
+            test = Identification(framework=KerasNeuralNetwork,
+                                  config_file_path=parsed['configfile'],
+                                  model_file_path=parsed['model'],
+                                  weight_file_path=parsed['weights'])
+
+    elif file_extension in ['.pb']:
+        test = Identification(framework=TensorFlowNeuralNetwork,
+                              config_file_path=parsed['configfile'],
+                              model_file_path=parsed['model'])
+
+    elif file_extension in ['.graph']:
+        test = Identification(framework=GraphNeuralNetwork,
+                              config_file_path=parsed['configfile'],
+                              model_file_path=parsed['model'])
+
+    else:
+        print("Format not supported.")
+        sys.exit()
+
+    test.load_images(parsed['test'])
     test.predict()
     del test
-    tfmodel = "/Users/francesco/Downloads/Model/vgg16_catedog.pb"
-    test2 = Identification(TensorFlowNeuralNetwork,
-                       '/Users/francesco/PycharmProjects/NeuralNetwork/Model/config_dogcat2.json', tfmodel)
-    test2.load_images("/Users/francesco/Downloads/DogAndCatDataset/test/test_images/")
-    test2.predict()
+    quit()
+
