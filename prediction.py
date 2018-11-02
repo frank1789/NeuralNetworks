@@ -3,11 +3,6 @@ import errno
 import json
 import glob
 import numpy as np
-import platform
-
-a = platform.system()
-print(a)
-# from movidiusinterface import GraphNeuralNetwork
 from utilityfunction import Spinner
 import tensorflow as tf
 from keras.optimizers import SGD
@@ -453,6 +448,7 @@ if __name__ == '__main__':
                               model_file_path=parsed['model'])
 
     elif file_extension in ['.graph']:
+        from movidiusinterface import GraphNeuralNetwork
         test = Identification(framework=GraphNeuralNetwork,
                               config_file_path=parsed['configfile'],
                               model_file_path=parsed['model'])
