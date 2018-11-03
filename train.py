@@ -187,7 +187,7 @@ def main():
     # train fit
     neuralnetwork.train_and_fit_model(name)
     # save model
-    neuralnetwork.save_model_to_file(name=name, extension='.h5', export_image=True)
+    neuralnetwork.save_model_to_file(name=name, extension='.h5', export_image=False)
     # clear
     del neuralnetwork
 

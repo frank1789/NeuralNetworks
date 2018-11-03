@@ -16,19 +16,8 @@ from tensorflow.python.framework import graph_util
 # suppress warning and error message tf
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
-def title():
-    print("     )                                                           ")
-    print("  ( /(                    )                                    ) ")
-    print("  )\()) (  (      )    ( /(             (  ( (      )       ( /( ")
-    print("|((_)\ ))\ )(  ( /( (  )(_))(     (  (  )\))()(  ( /( `  )  )\())")
-    print("|_ ((_)((_|()\ )(_)))\((_)  )\ )  )\ )\((_))(()\ )(_))/(/( ((_)\ ")
-    print("| |/ (_))  ((_|(_)_((_)_  )_(_/( ((_|(_)(()(_|(_|(_)_((_)_\| |(_)")
-    print("| ' </ -_)| '_/ _` (_-</ /| ' \)) _|(_-< _` | '_/ _` | '_ \) ' \ ")
-    print("|_|\_\___||_| \__,_/__/___|_||_|\__|/__|__, |_| \__,_| .__/|_||_|")
-    print("                                       |___/         |_|         \n")
 
-
-class KerasToNCSGraph:
+class KerasToNCSGraph(object):
     model_ = None  # store model
     tf_model_ = None  # tensorflow meta file graph structure
     base_dir = './ModelGraph'
@@ -157,12 +146,27 @@ class KerasToNCSGraph:
             print("removing previous temporary files")
             shutil.rmtree(self.base_dir, ignore_errors=True)
 
+    @staticmethod
+    def title():
+        print("     )                                                           ")
+        print("  ( /(                    )                                    ) ")
+        print("  )\()) (  (      )    ( /(             (  ( (      )       ( /( ")
+        print("|((_)\ ))\ )(  ( /( (  )(_))(     (  (  )\))()(  ( /( `  )  )\())")
+        print("|_ ((_)((_|()\ )(_)))\((_)  )\ )  )\ )\((_))(()\ )(_))/(/( ((_)\ ")
+        print("| |/ (_))  ((_|(_)_((_)_  )_(_/( ((_|(_)(()(_|(_|(_)_((_)_\| |(_)")
+        print("| ' </ -_)| '_/ _` (_-</ /| ' \)) _|(_-< _` | '_/ _` | '_ \) ' \ ")
+        print("|_|\_\___||_| \__,_/__/___|_||_|\__|/__|__, |_| \__,_| .__/|_||_|")
+        print("                                     |___/         |_|         \n")
+
+    def __del__(self):
+        del self.model_
+        del self.tf_model_
+
 
 if __name__ == '__main__':
-    title()
     # parsing argument script
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-                                    description='Convert Keras model file (.h5, json, .model) in Graph model file.')
+                                     description='Convert Keras model file (.h5, json, .model) in Graph model file.')
     parser.add_argument('-k', '--keras',
                         metavar='file',
                         action='store',
