@@ -202,7 +202,7 @@ class TensorFlowNeuralNetwork(object):
         #     # ...
         #     # prefix/Accuracy/predictions
         #
-        x = self._graph.get_tensor_by_name('input_1:0')
+        x = self._graph.get_tensor_by_name('prefix/input_1:0')
         return x
 
     def get_output_tenor(self):
@@ -220,7 +220,7 @@ class TensorFlowNeuralNetwork(object):
         #     # ...
         #     # prefix/Accuracy/predictions
         #
-        y = self._graph.get_tensor_by_name('predictions/Softmax:0')
+        y = self._graph.get_tensor_by_name('prefix/predictions/Softmax:0')
         return y
 
     def predict(self, test_image):
@@ -269,8 +269,9 @@ class ModelNeuralNetwork(object):
 
 class Identification(ModelNeuralNetwork):
     def __init__(self, framework, config_file_path, model_file_path, weight_file_path=None):
-        super(Identification, self).__init__(framework, config_file_path, model_file_path, weight_file_path)
         self.file_list = []
+        super(Identification, self).__init__(framework, config_file_path, model_file_path, weight_file_path)
+
 
     def _images_to_tensor(self, picture):
         """
@@ -428,7 +429,7 @@ if __name__ == '__main__':
     # parsing argument
     parse = MyArgumentParser()
     parsed = parse.get_arguments()
-
+    test = None
     # check type of model
     filename, file_extension = os.path.splitext(parsed['model'])
     if file_extension in ['.h5', '.model', '.json']:
