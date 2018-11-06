@@ -110,59 +110,49 @@ is a result that earned them a second place finish in the competition.
 \label{fig:vgg16schema}
 \end{figure}
 %
-%VGG16 Model
-%
-%The script for fine--tuning VGG16 can be found in vgg16.py. 
-%The first part of the vgg\_std16\_model function is the model schema for VGG16. 
-%After defining the fully connected layer, we load the ImageNet pre--trained 
-%weight to the model by the following line:
-
-%model.load_weights('cache/vgg16_weights.h5')
-%For fine-tuning purpose, we truncate the original softmax layer and replace it with our own by the following snippet:
-
-%model.layers.pop()
-%model.outputs = [model.layers[-1].output]
-%%model.layers[-1].outbound_nodes = []
-%model.add(Dense(num_class, activation='softmax'))
-%Where the num\_class variable in the last line represents the number of class labels for our classification task.
-%
-%Sometimes, we want to freeze the weight for the first few layers so that they 
-%remain intact throughout the fine-tuning process. 
-%Say we want to freeze the weights for the first 10 layers. 
-%%This can be done by the following lines:
-%
-%%for layer in model.layers[:10]:
-%  %  layer.trainable = False
-We then fine-tune the model by minimizing the cross entropy loss function using
-\emph{stochastic gradient descent} (SGD) algorithm. 
-Notice that we use an initial learning 
-rate of $0.0001$, which is smaller than the learning rate for training scratch 
+For the first experiment, the network was trained with a pre-dated dataset from 
+the Kaggle specialist site. 
+Withdrawing a binary dataset, which consists of only two classes: 
+``dog" and ``cat".
+After using the script, presented in section \ref {subsec:dataset}, the network
+is trained, then fine-tuning the model by minimizing the ``\emph{categorical 
+cross entropy}" loss function using \emph {stochastic gradient descent} (SGD) 
+algorithm.
+Notice that we use an initial learning
+rate of $0.0001$, which is smaller than the learning rate for training scratch
 model usually $0.01$.
-
-%sgd = SGD(lr=1e-3, decay=1e-6, momentum=0.9, nesterov=True)
-%model.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=['accuracy'])
-%model = vgg_std16_model(img_rows, img_cols, channel, num_class)
-%Where img_rows, img_cols, and channel define the dimension of the input. For colored image with resolution 224x224, img_rows = img_cols = 224, channel = 3.
-
-%Next, we load our dataset, split it into training and testing sets, and start fine-tuning the model:
-
-%X_train, X_valid, Y_train, Y_valid = load_data()
-
-%model.fit(train_data, test_data,
- %         batch_size=batch_size,
-%          nb_epoch=nb_epoch,
- %         shuffle=True,
- %         verbose=1,
-  %        validation_data=(X_valid, Y_valid),
- %         )
-The fine-tuning process will take a while, depending on your hardware. 
+It was decided to use this optimization because it has better performance 
+during the binary classification.
+In fact, after two hundred epochs an accuracy of about $99.96\%$ is reached. 
 After it is done, we use the model the make prediction on the validation set 
-and return the score for the cross entropy loss:
-
-%predictions_valid = model.predict(X_valid, batch_size=batch_size, verbose=1)
-%score = log_loss(Y_valid, predictions_valid)
-
-
+and return the score for the cross entropy loss, as shown in the 
+figure \ref{fig:vgg16resultbin}.
+\begin{figure}[thb]
+\subfloat[][\emph{Cross entropy accuracy}.]
+   {\includegraphics[width=.45\linewidth]{vgg16_catedog_accuracy}} \quad
+\subfloat[][\emph{Cross entropy loss}.]
+  {\includegraphics[width=0.45\linewidth]{vgg16_catedog_loss}} \\
+\caption{VGG16 binary label}
+\label{fig:vgg16resultbin}
+\end{figure}
+%
+The second experiment was instead performed on the Simpsons dataset, the famous 
+animated television series, this dataset presents forty-two classes, so instead of 
+using an optimization based on SGD it was preferred to use an optimizer 
+\emph{Adam} that presents better performance in case of multi-label.
+In this other case, after two hundred epochs an accuracy of about $99\%$ is 
+reached.
+Otherwise prediction on the validation set return the score for the cross 
+entropy loss, as show in figure \ref{fig:vgg16resultmulti}.
+\begin{figure}[htb]
+\subfloat[][\emph{Cross entropy accuracy}.]
+   {\includegraphics[width=.45\linewidth]{vgg16_catedog_accuracy}} \quad
+\subfloat[][\emph{Cross entropy loss}.]
+  {\includegraphics[width=0.45\linewidth]{vgg16_catedog_loss}} \\
+\caption{VGG16 binary label}
+\label{fig:vgg16resultmulti}
+\end{figure}
+%
 \subsection{Fine-tune Inception--V3}
 \label{subsec:inception}
 Inception--V3 achieved the second place in the $2015$ \emph{ImageNet} 
