@@ -22,9 +22,9 @@ computer vision applications in categories such as smart-phones, drones,
 intelligent cameras and augmented reality devices.
 Running Deep Learning models efficiently on low capacity graph processors is very painful. 
 Movidius allows us to optimize the operation of large models such as GoogLeNet.
-with multi-use support. It is an easy-to-use kit that allows you to design and 
-implement applications such as classification and object recognition as physical 
-products.
+with multi-use support.
+It is an easy-to-use kit that allows you to design and implement applications 
+such as classification and object recognition as physical products.
 We can simply think of Movidius NCS as a GPU\footnote{Graphics Processing Unit} 
 running on USB. 
 However, training of the model is not performed on this unit, the trained model 
@@ -64,9 +64,10 @@ The Myriad 2 line up includes the following product configurations:
 % 
 Myriad 2 VPUs offer TeraFLOPS (trillions of floating-point operations per 
 second) of performance within a nominal 1 Watt power envelope. 
-The Myriad 2 architecture includes enough performance to support multiple cameras 
-with flexible image signal processing pipelines for each camera, and software 
-programmable vision processing with fixed- and floating-point datatypes supported. 
+The Myriad 2 architecture, show in figure \ref{fig:architecture}, includes enough 
+performance to support multiple cameras with flexible image signal processing 
+pipelines for each camera, and software programmable vision processing with 
+fixed- and floating-point data-types supported. 
 A robust overall data-flow design ensures mitigation of processing bottlenecks.\\
 Myriad 2 MA2x5x incorporates an innovative approach to combine image signal 
 processing with vision processing. 
@@ -87,7 +88,8 @@ MYRIAD 2 SoC SPECIFICATIONS
 		\item Programmable Interconnect
 		\end{itemize}
 		\item  Support for 16/32-bit floating point and 8/16/32-bit integer operations
-		\item  Homogeneous, centralized memory architecture; 2MB of on-chip memory
+		\item  Homogeneous, centralized memory architecture
+		\item 2MB of on-chip memory
 		\item  400 GB/sec of sustained internal memory bandwidth
 		\item  256 KB of L2 Cache
 		\item  Power management: 20 power islands; low power states
@@ -115,7 +117,7 @@ MYRIAD 2 SoC SPECIFICATIONS
 \centering
 \includegraphics[width=\linewidth]{core}
 \caption{MYRIAD 2 SoC architecture}
-\label{fig:movidius}
+\label{fig:architecture}
 \end{figure}
 %
 \subsection{Result}
