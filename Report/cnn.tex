@@ -1,7 +1,7 @@
 \section{Building Convolutional Neural Network with Keras}
 \label{sec:buildcnn}
 %
-As we discussed in the last section \ref{sec:introduction_keras}, Keras has a 
+As we discussed in the last section (\ref{subsec:introduction_keras}), Keras has a 
 series of layers that were specifically created to support convolutional 
 neural networks.
 By definition, a fully connected layer connects every neuron in the layer and 
@@ -48,8 +48,8 @@ convolutional neural network, which classifies objects and images.
 Let's walk through this diagram so we can get an overview of how convolutional 
 neural networks work and how we implement them using Keras. 
 We see the image data is passed through the convolutional layer, then through 
-a non-linear relu activation and then to a pool layer. 
-And then to a second convolution with relu layer and a second pool layer. 
+a non-linear ReLU activation and then to a pool layer. 
+And then to a second convolution with ReLU layer and a second pool layer. 
 And finally, to a fully connected layer and then to a second fully connected 
 layer for classification. 
 So we can divide our convolutional neural network into four operations. 
@@ -60,11 +60,7 @@ and pass data when we construct our convolutional neural network in Keras.
 Convolutional neural networks are the current state-of-art architecture for
 image classification. They are used in practice today in facial recognition, self
 driving cars, and detecting whether an object is a hot-dog.
-
-
-
-
-
+%
 \subsection{Convolution}
 \label{ssec:convolution}
 %
@@ -86,7 +82,7 @@ There are two ways of handling differing filter size and input size, known as
 same padding and valid padding.
 Same padding will pad the input border with zeros (as seen above) to ensure the
 input width and height are preserved. Valid padding does not pad.
-Typically, you’ll want to use same padding or you’ll rapidly reduce the
+Typically, you will want to use same padding or you will rapidly reduce the
 dimensionality of your input.
 Finally, an activation function (typically a ReLU) is applied to give the
 convolution non-linearity.
