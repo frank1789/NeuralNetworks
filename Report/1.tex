@@ -52,7 +52,8 @@ focus on learning dataset-specific features in the subsequent layers.
 \label{sec:finetuningkeras}
 %
 I have implemented starter scripts for fine-tuning convnets in Keras. 
-The scripts are hosted in my github page.
+The scripts are hosted in my remote 
+repository\footnote{https://github.com/frank1789/NeuralNetworks} page.
 Implementations of VGG16, VGG19, Inception-V3, and ResNet50 are included. 
 With that, you can customize the scripts for your own fine-tuning task.
 Below is a detailed walk through of how to fine-tune VGG16 and Inception--V3 
@@ -110,10 +111,11 @@ is a result that earned them a second place finish in the competition.
 \label{fig:vgg16schema}
 \end{figure}
 %
-For the first experiment, the network was trained with a pre-dated dataset from 
-the Kaggle specialist site. 
-Withdrawing a binary dataset, which consists of only two classes: 
-``dog" and ``cat".
+For the first experiment, the network was trained with a dataset from 
+the Kaggle\footnote{https://www.kaggle.com} specialist site. 
+Withdrawing a binary 
+dataset\footnote{https://www.kaggle.com/c/dogs-vs-cats-redux-kernels-edition/data}, 
+which consists of only two classes: ``dog" and ``cat".
 After using the script, presented in section \ref {subsec:dataset}, the network
 is trained, then fine-tuning the model by minimizing the ``\emph{categorical 
 cross entropy}" loss function using \emph {stochastic gradient descent} (SGD) 
@@ -132,26 +134,28 @@ figure \ref{fig:vgg16resultbin}. \linebreak
 \subfloat[][\emph{Cross entropy accuracy}.]
    {\includegraphics[width=.475\linewidth]{vgg16_catedog_accuracy}} \quad
 \subfloat[][\emph{Cross entropy loss}.]
-  {\includegraphics[width=0.475\linewidth]{vgg16_catedog_loss}} \\
+  {\includegraphics[width=0.475\linewidth]{vgg16_catedog_loss}} 
 \caption{VGG16 binary label training result}
 \label{fig:vgg16resultbin}
 \end{figure}
 %
-\\The second experiment was instead performed on the Simpsons dataset, the famous 
-animated television series, this dataset presents forty-two classes, so instead of 
-using an optimization based on SGD it was preferred to use an optimizer 
-\emph{Adam} that presents better performance in case of multi-label.
+\\The second experiment was instead performed on the 
+Simpson\footnote{https://www.kaggle.com/alexattia/the-simpsons-characters-dataset} 
+dataset, the famous animated television series, this dataset presents forty-two 
+classes, so instead of using an optimization based on SGD it was preferred to 
+use an optimizer \emph{Adam} that presents better performance in case of 
+multi--label.
 In this other case, after two hundred epochs an accuracy of about $99\%$ is 
 reached.
 Otherwise prediction on the validation set return the score for the cross 
-entropy loss, as show in figure \ref{fig:vgg16resultmulti}.
+entropy loss, as show in figures \ref{fig:vgg16resultmulti}.
 %
 \begin{figure}[htb]
 \centering
 \subfloat[][\emph{Cross entropy accuracy}.]
    {\includegraphics[width=.475\linewidth]{vgg16_catedog_accuracy}} \quad
 \subfloat[][\emph{Cross entropy loss}.]
-  {\includegraphics[width=0.475\linewidth]{vgg16_catedog_loss}} \\
+  {\includegraphics[width=0.475\linewidth]{vgg16_catedog_loss}} 
 \caption{VGG16 multi--label training result}
 \label{fig:vgg16resultmulti}
 \end{figure}
@@ -174,14 +178,15 @@ As described, for the neural network VGG16 in the section (\ref{subsec:vgg16}),
 the dual experiment was repeated for this neural network.
 In this way I obtain, with respect to the previous one, the results shown in figures
 for the binary classification.
-On the other side the reuses for multi-label classification where an accuracy of $99\%$ is observed.
+On the other side the reuses for multi-label classification where an accuracy 
+of $99\%$ is observed.
 %
 \begin{figure}[htb]
 \centering
 \subfloat[][\emph{Cross entropy accuracy}.]
    {\includegraphics[width=.475\linewidth]{vgg16_catedog_accuracy}} \quad
 \subfloat[][\emph{Cross entropy loss}.]
-  {\includegraphics[width=0.475\linewidth]{vgg16_catedog_loss}} \\
+  {\includegraphics[width=0.475\linewidth]{vgg16_catedog_loss}} 
 \caption{Inception binary label training result}
 \label{fig:inception-result-bin}
 \end{figure}
@@ -191,7 +196,7 @@ On the other side the reuses for multi-label classification where an accuracy of
 \subfloat[][\emph{Cross entropy accuracy}.]
    {\includegraphics[width=.475\linewidth]{vgg16_catedog_accuracy}} \quad
 \subfloat[][\emph{Cross entropy loss}.]
-  {\includegraphics[width=0.475\linewidth]{vgg16_catedog_loss}} \\
+  {\includegraphics[width=0.475\linewidth]{vgg16_catedog_loss}} 
 \caption{Inception multi--label training result}
 \label{fig:inception-result-multi}
 \end{figure}
