@@ -1,11 +1,15 @@
 \documentclass[conference]{IEEEtran}
 \usepackage{cite}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
 
 %--------package image---------------------------------------------------------
 \usepackage{graphicx}
+\usepackage{subfig}
 \graphicspath{{./imgs/}}
 \renewcommand{\figurename}{Fig.}
-\usepackage{subfig}
+
 %-------package tikz-----------------------------------------------------------
 \usepackage{tikz,fp,ifthen,fullpage}
 \usepackage{pgfmath}
@@ -37,62 +41,22 @@ decorations.markings}
 		%Email: }
 	}
 	\maketitle
-%Main body starts
+%Main body
 	\begin{abstract}
 		Abstract goes here
 	\end{abstract}
 % define keyword
 	\begin {IEEEkeywords}
-		IoT, Ontology, Semantics,  SSN, OWL, OBOE, OpenIoT, SWEET, SUMO
+		Python, Keras, Movidius, Intel, Neural Networ, Iception, TensorFlow, ImageNet, ncsdk, API, backend.
 	\end{IEEEkeywords}
 	%Introduction
-	\input{introduction}
-	\section{Section 2}\label{section2}
-%\input{sections/2_section.tex}
-	\subsection{IoT}
-\section{Section 3}
-\label{section3}
-%\input{sections/3_section.tex}
-
-
-\section{Section 4}
-\label{section4}
-%\input{sections/4_section.tex}
-
-%example for Bullet point list
-
-\begin{itemize}
-\item example
-\end {itemize}
-
-
-
-%example for numbered list
-    \begin{enumerate}
-    \item example
-
-    \end{enumerate}
-
-
-
-
-%example for inserting image
-\begin{figure}[h]
-   \centering
-  % \includegraphics[scale=.45]{OWL2}
-    \caption{The structure of OWL2}
-    \label{fig:OWL2}
-\end{figure}
-
-
-%muitextwrite\cite{jj2}.
-
-\section{Conclusion}
-\label {conclusion}
-%\input{sections/5_conclusion.tex}
-
-
-% bibliography
+	\input{introduction.tex}
+	\input{keras.tex}
+	\input{cnn.tex}
+	\input{project.tex}
+	\input{movidius.tex}
+	%\input{conclusion.tex}
+	% bibliography
 	\bibliographystyle{IEEEtran}
 	\bibliography{my-bibliography}
 \end{document}
