@@ -314,10 +314,13 @@ class Identification(ModelNeuralNetwork):
         # generate figure
         f = plt.figure(figsize=(12, 8))
         # make four subplot with gridspec
-        gs = gridspec.GridSpec(2, 2, width_ratios=[1, 1], height_ratios=[2, 1])
+        if len(self._label_map) > 2:
+            gs = gridspec.GridSpec(4, 2,)
+        else:
+            gs = gridspec.GridSpec(2, 2, )
         # center in the grid
         ax1 = plt.subplot(gs[0, :])
-        ax2 = plt.subplot(gs[1, :])
+        ax2 = plt.subplot(gs[1:, :])
         # first subplot ax1 display test image passed as argument
         ax1.set_title("Test figure: {:s}".format(name))
         # read the picture and plot
@@ -331,7 +334,7 @@ class Identification(ModelNeuralNetwork):
         ax2.barh(range(len(data)), values * 100, tick_label=names)
         ax2.set_xlim(0, 100)
         plt.show(block=False)
-        plt.pause(0.5)
+        plt.pause(5)
         plt.close('all')
 
     def __del__(self):
