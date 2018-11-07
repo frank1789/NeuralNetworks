@@ -328,13 +328,7 @@ class Identification(ModelNeuralNetwork):
         data = self._label_map
         names = list(data.values())  # extract name from dict
         values = result[0]  # extract value from prediction
-        rects = ax2.barh(range(len(data)), values * 100, tick_label=names)
-        for rect in rects:
-            height = rect.get_height()
-            ax2.text(rect.get_x() + rect.get_height() / 2., 1.05 * height,
-                     '%d' % int(height),
-                     ha='center', va='bottom')
-
+        ax2.barh(range(len(data)), values * 100, tick_label=names)
         ax2.set_xlim(0, 100)
         plt.show(block=False)
         plt.pause(0.5)
