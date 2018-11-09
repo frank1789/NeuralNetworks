@@ -19,7 +19,6 @@ from keras.utils import plot_model
 from keras import backend as kbe
 from staticsanalysis import HistoryAnalysis
 
-
 kbe.set_learning_phase(0)
 # suppress warning and error message tf
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -413,11 +412,11 @@ class FaceRecognition(ConvolutionNeuralNetwork):
         elif pretrained_model == 'inception':
             model_base, output = self.get_pretrained_model(pretrained_model, weights, include_top)
             if output.shape.ndims > 2:
-                output = GlobalAveragePooling2D()(output)
+                x = GlobalAveragePooling2D()(output)
             else:
-                output = output
+                x = output
             # classification block
-            x = BatchNormalization(name="batchNorm1")(output)
+            x = BatchNormalization(name="batchNorm1")(x)
             x = Dropout(0.5, name="Dropout1")(x)
             x = Dense(Number_FC_Neurons, activation='relu', name="fc1")(x)
             x = BatchNormalization(name="batchNorm2")(x)
