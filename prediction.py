@@ -331,7 +331,7 @@ class Identification(ModelNeuralNetwork):
         ax2.set_title("Prediction")
         data = self._label_map
         names = list(data.values())  # extract name from dict
-        values = result[0]  # extract value from prediction
+        values = result  # extract value from prediction
         ax2.barh(range(len(data)), values * 100, tick_label=names)
         ax2.set_xlim(0, 100)
         plt.show(block=False)
