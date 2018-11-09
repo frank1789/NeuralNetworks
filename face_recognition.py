@@ -19,7 +19,8 @@ from keras.utils import plot_model
 from keras import backend as kbe
 from staticsanalysis import HistoryAnalysis
 
-kbe.set_learning_phase(1)
+
+kbe.set_learning_phase(0)
 # suppress warning and error message tf
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
