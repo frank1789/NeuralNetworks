@@ -123,7 +123,7 @@ class KerasNeuralNetwork(object):
         self.__compile_keras_model()
         result = self._model.predict(test_image)
         print(result)
-        return result
+        return result[0]
 
     def __del__(self):
         del self.__spin
@@ -234,8 +234,9 @@ class TensorFlowNeuralNetwork(object):
             y = self.get_output_tenor()
             # compute the predicted output for test_x
             pred_y = sess.run(y, feed_dict={x: test_image})
+            print(pred_y)
         # return prediction
-        return pred_y
+        return pred_y[0]
 
 
 class ModelNeuralNetwork(object):
