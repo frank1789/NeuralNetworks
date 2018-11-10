@@ -11,7 +11,7 @@ from keras.models import Model, model_from_json, load_model
 from keras.layers import Dropout, Flatten, Dense, Input
 from keras.optimizers import SGD, Adam
 from keras.layers.convolutional import ZeroPadding2D
-from keras.layers import MaxPooling2D, Convolution2D, Activation, GlobalAveragePooling2D
+from keras.layers import MaxPooling2D, Convolution2D, Activation, GlobalAveragePooling2D, BatchNormalization
 from keras.applications import VGG16, VGG19, InceptionV3, Xception, ResNet50
 from keras.applications.imagenet_utils import preprocess_input
 from keras.preprocessing.image import ImageDataGenerator
@@ -19,7 +19,7 @@ from keras.utils import plot_model
 from keras import backend as kbe
 from staticsanalysis import HistoryAnalysis
 
-kbe.set_learning_phase(1)
+kbe.set_learning_phase(0)
 # suppress warning and error message tf
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
@@ -179,19 +179,14 @@ class FaceRecognition(ConvolutionNeuralNetwork):
 
     def train_and_fit_model(self, figure_history_name):
         """Train the model"""
-
-        print('epochs', self.m_epochs, )
-        print('steps_per_epoch', self.m_num_train_samples // self.m_batch_size, )
-        print('validation_data', self.m_valid_generator, )
-        print('validation_steps', self.m_num_validate_samples // self.m_batch_size, )
         history = self.m_model.fit_generator(
             self.m_train_generator,
             epochs=self.m_epochs,
             steps_per_epoch=self.m_num_train_samples // self.m_batch_size,
             validation_data=self.m_valid_generator,
             validation_steps=self.m_num_validate_samples // self.m_batch_size,
-            # shuffle=True,
-            class_weight='auto')
+            class_weight='auto',
+            use_multiprocessing=True)
         # print plot training (accuracy vs lost)
         plotter = HistoryAnalysis.plot_history(history, figure_history_name)
 
@@ -416,8 +411,16 @@ class FaceRecognition(ConvolutionNeuralNetwork):
 
         elif pretrained_model == 'inception':
             model_base, output = self.get_pretrained_model(pretrained_model, weights, include_top)
-            x = GlobalAveragePooling2D()(output)
-            x = Dense(Number_FC_Neurons, activation='relu', name="fc1")(x)  # new FC layer, random init
+            if output.shape.ndims > 2:
+                x = GlobalAveragePooling2D()(output)
+            else:
+                x = output
+            # classification block
+            x = BatchNormalization(name="batchNorm1")(x)
+            x = Dropout(0.5, name="Dropout1")(x)
+            x = Dense(Number_FC_Neurons, activation='relu', name="fc1")(x)
+            x = BatchNormalization(name="batchNorm2")(x)
+            x = Dropout(0.5, name="Dropout2")(x)
 
         elif pretrained_model == 'xception':
             model_base, output = self.get_pretrained_model(pretrained_model, weights, include_top)
@@ -433,10 +436,10 @@ class FaceRecognition(ConvolutionNeuralNetwork):
             model_base, output = self.get_pretrained_model(pretrained_model, weights, include_top)
             # classification block
             x = Flatten()(output)
-            x = Dense(int(Number_FC_Neurons / 2), activation='relu')(x)
+            x = Dense(4096, activation='relu')(x)
             x = Dropout(0.5)(x)
-            x = Dense(32, activation='relu')(x)
-            x = Dropout(0.25)(x)
+            x = Dense(4096, activation='relu')(x)
+            x = Dropout(0.5)(x)
 
         else:
             print("Neural network not available")

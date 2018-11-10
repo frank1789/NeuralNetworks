@@ -111,6 +111,7 @@ class GraphNeuralNetwork(MovidiusInterface):
         # Get execution time
         inference_time = self.graph.get_option(mvncapi.GraphOption.RO_TIME_TAKEN)
         print("Execution time: {:5.5f} ms".format(np.sum(inference_time)))
+        print(output)
         return output
 
     def __clean(self):
