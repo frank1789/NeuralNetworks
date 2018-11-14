@@ -1,5 +1,32 @@
 #!/usr/bin/env bash
-#----------------------------------------------------------------------------#
+
+# ----- INSTRUCTION ----------------------------------------------------------#
+# This script allows the download from google drive of some trained models of 
+# neural convolution networks for image classifications.
+# If you want to use the Intel Movidius computer stick you need to provide the
+# first argument `movidius` (without quotes)
+# Otherwise it is sufficient to pass a first fictitious parameter, eg 'a'
+# As a second parameter it is necessary to pass the path of the file or folder
+# containing the images to be submitted to the network.
+#
+#Example:
+#
+# - run on intel movidius and single file:
+# sh nomescript.sh movidius ../test.jpeg
+#
+# - run on intel movidius and test images folder:
+# sh nomescript.sh movidius ../test_folder
+#
+# - run on intel movidius and single file:
+# sh nomescript.sh empty ../test.jpeg
+#
+# - run test host and folder images:
+# sh nomescript.sh empty ../test_folder
+#
+# NB empty is a fake parameter
+#
+
+#---- FUNCTION DEFINITION ----------------------------------------------------#
 # define function to download the trained model from google drive
 # 1st argument: must be the ID of file in GoogleDrive
 # 2nd argument: destination folder
