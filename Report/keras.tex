@@ -62,8 +62,8 @@ the appropriate results.
 \section{Neural Networks}
 \label{sec:neuralnetwork}
 %
-The neural network, in figure \ref{fig:nn_layer}, where on the 
-left we have the input layer, which feeds data into the network.
+The neural network, in figure \ref{fig:nn_layer}, that can be divided into trhee
+parts, tkes data from input nodes and feeds the network.
 This data could be values from a data table, images from a camera, sounds from a
 recording, or output from a sensor.
 The input layer does not change the data, it simply passes it for processing by
@@ -85,7 +85,8 @@ which provide the final outputs.\linebreak
 Hidden layers are defined as not being input or output layers, and therefore,
 are hidden to the code that's using the neural network.
 The network can have many hidden layers and if there are two or more hidden
-layers we call the network a deep neural network.
+layers we call the network a deep neural network, as shows in figure 
+\ref{fig:deepnn}.
 %
 \begin{figure}[!h]
 \centering
@@ -100,9 +101,10 @@ outputs we showed in the network diagram, with the inputs going in and the
 outputs going out.
 However, what is not showing in this diagram is how the neurons work internally.
 To do that, we need to open the neuron so we can see how it is constructed.
-As we see, the neuron is performing a simple mathematics summing of weights times
-the input value and adding a bias.
-The product of these operations is passed through a non-linear activation function.
+As we see, the neuron is performing a simple mathematics summing of weights, 
+times the input value and adds a bias.
+The product of these operations is passed through a non-linear activation
+function.
 And the output of the activation function is the output of the neuron.
 A key feature of the neural network is the ability to use the input data to
 train the weights and biases so the signal passed out of the neuron changes
@@ -113,7 +115,7 @@ This is done through processes called forward propagation and back propagation.
 And when these processes are complete, the network is said to be trained, and
 the weights and biases of all the neurons have been adjusted to give the best
 results on the training data. So to summarize, the neural network consists of
-three layer types, input, hidden, and output. 
+three layer types: input, hidden, and output. 
 By passing training data through the network, the network of neurons is 
 trained to give results with the least error.
 This training is done by adjusting weights and biases in the neurons, utilizing
