@@ -85,18 +85,38 @@ Same padding will pad the input border with zeros (as seen above) to ensure the
 input width and height are preserved. Valid padding does not pad.
 Typically, you will want to use same padding or you will rapidly reduce the
 dimensionality of your input.
-Finally, an activation function (typically a ReLU) is applied to give the
-convolution non-linearity.
+Finally, an activation function (typically a ReLU\footnote{In the context of 
+artificial neural networks, the rectifier is an activation function defined as 
+the positive part of its argument:\\ \(f(x) = x^{+} = \text{max}(0,x)\)}), 
+represented in figure \ref{fig:relu} is applied to give the convolution non-linearity.
 ReLU’s are a bit different from other activation functions, such as sigmoid or
 tanh, as ReLUs are one-sided.
 This one-sided property allows the network to create sparse representation
 (zero value for hidden units), increasing computational efficiency.
-%TODO inserire riferimento figura 8 e riferimenti assi
 %
 \begin{figure}[htb]
 \centering
-\includegraphics[width=\linewidth]{ReLU}
-\caption{Deep neural networks layers}
+\begin{tikzpicture}
+    \begin{axis}[
+        domain=-3:5,
+        grid=both,
+    	grid style={line width=.1pt, draw=gray!10},
+    	major grid style={line width=.2pt,draw=gray!50},
+    	axis lines=middle,
+    	minor tick num=5,
+    	enlargelimits={abs=0.5},
+    	axis line style={latex-latex},
+    	ticklabel style={font=\tiny,fill=white},
+    	xlabel style={at={(ticklabel* cs:1)},anchor=north west},
+    	ylabel style={at={(ticklabel* cs:1)},anchor=south west},
+    	xlabel={\tiny $x$},
+    	ylabel={\tiny $y$}
+    ]
+        \addplot+[mark=none,red,domain=-3:0] {0};
+        \addplot+[mark=none,red,domain=0:5] {x};
+    \end{axis}
+\end{tikzpicture}
+\caption{Rectified linear unit (\textbf{ReLU})\\ \(F(x) = x^{+} = \text{max}(0,x)\)}
 \label{fig:relu}
 \end{figure}
 %
@@ -116,7 +136,8 @@ To calculate the output size of a pooling operation, you can use the formula:
 \begin{figure}[htb]
 \centering
 \includegraphics[width=\linewidth]{pooling}
-\caption{Deep neural networks layers}
+\caption{Max pooling is the application of a moving window across a 2D input 
+space, where the maximum value within that window is the output}
 \label{fig:pooling}
 \end{figure}
 %
@@ -143,4 +164,3 @@ In a CNN, the input is fed from the pooling layer into the fully connected layer
 Depending on the task, a regression or classification algorithm can be applied
 to create the desired output.
 %TODO aggiungere riferimento alla figura 10
-%
