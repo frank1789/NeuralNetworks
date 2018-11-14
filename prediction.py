@@ -339,8 +339,9 @@ class Identification(ModelNeuralNetwork):
         plt.close('all')
 
     def __del__(self):
+        self.framework._clean()
         self.file_list.clear()
-        del self.framework
+
 
 
 class MyArgumentParser(object):

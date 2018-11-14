@@ -47,16 +47,16 @@ class MovidiusInterface(metaclass=Singleton):
             raise Exception("Error - Could not open NCS device.")
 
     def __del__(self):
+        print("destory base")
         pass
 
 
 class GraphNeuralNetwork(MovidiusInterface):
-    __fifo_in = None
-    __fifo_out = None
-    graph = None
-
     def __init__(self):
         super(GraphNeuralNetwork, self).__init__()
+        self.__fifo_in = None
+        self.__fifo_out = None
+        self.graph = None
 
     def __str__(self):
         return "GraphNeuralNetwork"
@@ -114,11 +114,12 @@ class GraphNeuralNetwork(MovidiusInterface):
         print(output)
         return output
 
-    def clean(self):
+    def _clean(self):
         """
         Close and clean up fifos, graph
         :param self:
         """
+        print("destroy")
         self.__fifo_in.destroy()
         self.__fifo_out.destroy()
         self.graph.destroy()
@@ -130,9 +131,6 @@ class GraphNeuralNetwork(MovidiusInterface):
             print("NCS device working.")
         except:
             raise Exception("Error - could not close NCS device.")
-
-    def __del__(self):
-        self.clean()
 
 
 if __name__ == '__main__':
