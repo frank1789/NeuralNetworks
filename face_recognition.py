@@ -411,16 +411,9 @@ class FaceRecognition(ConvolutionNeuralNetwork):
 
         elif pretrained_model == 'inception':
             model_base, output = self.get_pretrained_model(pretrained_model, weights, include_top)
-            if output.shape.ndims > 2:
-                x = GlobalAveragePooling2D()(output)
-            else:
-                x = output
             # classification block
-            x = BatchNormalization(name="batchNorm1")(x)
-            x = Dropout(0.5, name="Dropout1")(x)
+            x = GlobalAveragePooling2D()(output)
             x = Dense(Number_FC_Neurons, activation='relu', name="fc1")(x)
-            x = BatchNormalization(name="batchNorm2")(x)
-            x = Dropout(0.5, name="Dropout2")(x)
 
         elif pretrained_model == 'xception':
             model_base, output = self.get_pretrained_model(pretrained_model, weights, include_top)
