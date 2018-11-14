@@ -65,15 +65,31 @@ fi
 # decompress file
 echo "decompressing file ${file}"
 zip_files="${dest_dir}/${file}"
-tar -zxvf $file 
+tar -zxvf $file
+rm $file
+
 # return parent folder and get config and model file
 cd ..
 config_file=$(find -L "${PWD}/${dest_dir}" -name \*.json | sort)
-model_file=$(find -L "${PWD}/${dest_dir}" -name \*.graph | sort)
+if [ "$1" = "movidius" ]; then
+	model_file=$(find -L "${PWD}/${dest_dir}" -name \*.graph | sort)
+else
+	model_file=$(find -L "${PWD}/${dest_dir}" -name \*.pb | sort)
+fi
 echo "Found: ${config_file}"
 echo "Found: ${model_file}"
 
+# download test folder contains images
+echo "Download test images..."
+remote_test_zip='16XMxZahk2OCETN-HiSVtIJkGqyNsbzJb'
+zip_test_folder=$(downloadfromGDrive $remote_test_zip)
+echo "decompressing ${zip_test_folder}..."
+test_folder=TestImages
+mkdir -p $test_folder && tar xf $zip_test_folder -C $test_folder --strip-components=1
+rm $zip_test_folder
+
 # launch script
-echo "python3 prediction.py --configfile $config_file --model $model_file --test $2"
-python3 prediction.py --configfile $config_file --model $model_file --test $2
+echo "python3 prediction.py --configfile ${config_file} --model ${model_file} --test ${test_folder}"
+python3 prediction.py --configfile ${config_file} --model ${model_file} --test ${test_folder}
+
 

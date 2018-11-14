@@ -125,6 +125,9 @@ class KerasNeuralNetwork(object):
         print(result)
         return result[0]
 
+    def _clean(self):
+        pass
+
     def __del__(self):
         del self.__spin
         del self._model
@@ -237,6 +240,9 @@ class TensorFlowNeuralNetwork(object):
             print(pred_y)
         # return prediction
         return pred_y[0]
+
+    def _clean(self):
+        pass
 
 
 class ModelNeuralNetwork(object):
