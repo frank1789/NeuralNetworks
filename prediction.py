@@ -123,7 +123,10 @@ class KerasNeuralNetwork(object):
         self.__compile_keras_model()
         result = self._model.predict(test_image)
         print(result)
-        return result
+        return result[0]
+
+    def _clean(self):
+        pass
 
     def __del__(self):
         del self.__spin
@@ -234,8 +237,12 @@ class TensorFlowNeuralNetwork(object):
             y = self.get_output_tenor()
             # compute the predicted output for test_x
             pred_y = sess.run(y, feed_dict={x: test_image})
+            print(pred_y)
         # return prediction
-        return pred_y
+        return pred_y[0]
+
+    def _clean(self):
+        pass
 
 
 class ModelNeuralNetwork(object):
@@ -314,10 +321,13 @@ class Identification(ModelNeuralNetwork):
         # generate figure
         f = plt.figure(figsize=(12, 8))
         # make four subplot with gridspec
-        gs = gridspec.GridSpec(2, 2, width_ratios=[1, 1], height_ratios=[2, 1])
+        if len(self._label_map) > 2:
+            gs = gridspec.GridSpec(4, 2,)
+        else:
+            gs = gridspec.GridSpec(2, 2, )
         # center in the grid
         ax1 = plt.subplot(gs[0, :])
-        ax2 = plt.subplot(gs[1, :])
+        ax2 = plt.subplot(gs[1:, :])
         # first subplot ax1 display test image passed as argument
         ax1.set_title("Test figure: {:s}".format(name))
         # read the picture and plot
@@ -327,21 +337,17 @@ class Identification(ModelNeuralNetwork):
         ax2.set_title("Prediction")
         data = self._label_map
         names = list(data.values())  # extract name from dict
-        values = result[0]  # extract value from prediction
-        rects = ax2.barh(range(len(data)), values * 100, tick_label=names)
-        for rect in rects:
-            height = rect.get_height()
-            ax2.text(rect.get_x() + rect.get_height() / 2., 1.05 * height,
-                     '%d' % int(height),
-                     ha='center', va='bottom')
-
+        values = result  # extract value from prediction
+        ax2.barh(range(len(data)), values * 100, tick_label=names)
         ax2.set_xlim(0, 100)
         plt.show(block=False)
-        plt.pause(0.5)
+        plt.pause(5)
         plt.close('all')
 
     def __del__(self):
+        self.framework._clean()
         self.file_list.clear()
+
 
 
 class MyArgumentParser(object):
