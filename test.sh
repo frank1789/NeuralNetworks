@@ -75,3 +75,5 @@ echo "Found: ${model_file}"
 
 # launch script
 echo "python3 prediction.py --configfile $config_file --model $model_file --test $2"
+python3 prediction.py --configfile $config_file --model $model_file --test $2
+

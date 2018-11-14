@@ -114,7 +114,7 @@ class GraphNeuralNetwork(MovidiusInterface):
         print(output)
         return output
 
-    def __clean(self):
+    def clean(self):
         """
         Close and clean up fifos, graph
         :param self:
@@ -132,7 +132,7 @@ class GraphNeuralNetwork(MovidiusInterface):
             raise Exception("Error - could not close NCS device.")
 
     def __del__(self):
-        self.__clean()
+        self.clean()
 
 
 if __name__ == '__main__':
