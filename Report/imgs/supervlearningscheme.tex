@@ -1,0 +1,52 @@
+\begin{tikzpicture}[auto,>=latex']
+%\draw [help lines] (0,0) grid (8,8);
+\tikzset{
+	boxA/.style={
+  		rectangle,
+  		inner sep=0pt,
+  		text width=25mm,
+  		align=center,
+  		draw=black,
+  		fill=airforceblue,
+  		minimum height = 10mm
+  	},
+  	boxB/.style={
+  		rectangle,
+  		inner sep=0pt,
+  		text width=25mm,
+  		align=center,
+  		draw=black,
+  		fill=amber,
+  		minimum height = 10mm
+  	},
+  	boxB1/.style={
+  		rectangle,
+  		inner sep=0pt,
+  		text width=25mm,
+  		align=center,
+  		draw=black,
+  		fill=amber!30,
+  		minimum height = 10mm
+  	},
+  	boxC/.style={
+  		rectangle,
+  		inner sep=0pt,
+  		text width=25mm,
+  		align=center,
+  		draw=black,
+  		fill=light-gray,
+  		minimum height = 10mm
+  	},
+  }
+
+\node (a) [boxC, align=center] at (1,1) {New data};
+\node (b) [boxC, align=center] at (5,1) {Predicitve\\ model};
+\node (c) [boxC, align=center] at (9,1) {Prediction};
+\node (d) [boxA, align=center] at (5,3) {Alogrithm\\ DNN};
+\node (e) [boxB, align=center] at (5,5) {Dataset};
+\node (e1) [boxB1, align=center] at (6,5.85) {Label};
+\draw [->] (a) -- (b);
+\draw [->] (b) -- (c);
+\draw [->] (d) -- (b); 
+\draw [->] (e) -- (d); 
+\end{tikzpicture}

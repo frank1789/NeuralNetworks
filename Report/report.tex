@@ -5,6 +5,8 @@
 \usepackage{amssymb}
 \usepackage{xcolor}
 \definecolor{light-gray}{gray}{0.95}
+\definecolor{airforceblue}{rgb}{0.36, 0.54, 0.66}
+\definecolor{amber}{rgb}{1.0, 0.75, 0.0}
 \usepackage[skins]{tcolorbox}
 \usepackage{setspace}
 \tcbset{commonstyle/.style={boxrule=0pt,sharp corners,enhanced jigsaw,nobeforeafter,
@@ -49,9 +51,8 @@ decorations.markings}
 	}
 	\maketitle
 %Main body
-	\begin{abstract}
-		Abstract goes here
-	\end{abstract}
+	% abstract
+	\input{abstract.tex}
 % define keyword
 	\begin {IEEEkeywords}
 		Python, Keras, Movidius, Intel, Neural Networ, Iception, TensorFlow, ImageNet,
