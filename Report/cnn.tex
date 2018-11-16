@@ -88,7 +88,7 @@ dimensionality of your input.
 Finally, an activation function (typically a ReLU\footnote{In the context of 
 artificial neural networks, the rectifier is an activation function defined as 
 the positive part of its argument:\\ \(f(x) = x^{+} = \text{max}(0,x)\)}), 
-represented in figure \ref{fig:relu} is applied to give the convolution non-linearity.
+represented in figure \ref{fig:relu}, is applied to give the convolution non-linearity.
 ReLU’s are a bit different from other activation functions, such as sigmoid or
 tanh, as ReLUs are one-sided.
 This one-sided property allows the network to create sparse representation
@@ -127,7 +127,8 @@ It applies a function summarizing neighbouring information.
 Two common functions are max pooling and average pooling.
 By calculating the max of an input region, the output summarizes intensity of
 surrounding values.
-Pooling layers also have a kernel and padding, and are moved in strides.
+Pooling layers also have a kernel and padding, and are moved in strides, as 
+represented in figure \ref{fig:pooling}
 To calculate the output size of a pooling operation, you can use the formula:
 \begin{equation}
  \text{Input Width} - \text{kernel width} + 2 * \text{padding}  / \text{strides} + 1
@@ -162,5 +163,4 @@ time.
 %
 In a CNN, the input is fed from the pooling layer into the fully connected layer.
 Depending on the task, a regression or classification algorithm can be applied
-to create the desired output.
-%TODO aggiungere riferimento alla figura 10
+to create the desired output, a representative example is shown in figure \ref{fig:fully_connected}.
