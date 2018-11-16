@@ -3,6 +3,9 @@
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{amssymb}
+\usepackage{xcolor}
+\definecolor{light-gray}{gray}{0.95}
+\newcommand{\code}[1]{\colorbox{light-gray}{\texttt{#1}}}
 
 %--------package image---------------------------------------------------------
 \usepackage{graphicx}
@@ -56,7 +59,7 @@ decorations.markings}
 	\input{cnn.tex}
 	\input{project.tex}
 	\input{movidius.tex}
-	%\input{conclusion.tex}
+	\input{conclusion.tex}
 	% bibliography
 	\bibliographystyle{IEEEtran}
 	\bibliography{my-bibliography}

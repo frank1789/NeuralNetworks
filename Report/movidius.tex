@@ -20,7 +20,8 @@ fabric, Movidius achieves a unique balance of power efficiency and high performa
 Movidius technology allows device makers to deploy deep neural network and 
 computer vision applications in categories such as smart-phones, drones, 
 intelligent cameras and augmented reality devices.
-Running Deep Learning models efficiently on low capacity graph processors is very painful. 
+Running Deep Learning models efficiently on low capacity graph processors is 
+very painful. 
 Movidius allows us to optimize the operation of large models such as GoogLeNet.
 with multi-use support.
 It is an easy-to-use kit that allows you to design and implement applications 
@@ -120,5 +121,55 @@ MYRIAD 2 SoC SPECIFICATIONS
 \label{fig:architecture}
 \end{figure}
 %
+\subsection{Conversion}
+\label{subsection:conversion}
+Once the neural network training is complete, the file containing the 
+definitions and weights of the various levels must be converted into a format 
+that can be read by the Movidius device.
+The Intel Movidius Neural Compute SDK enables rapid prototyping and deployment 
+of deep neural networks (DNNs) on compatible neural compute devices like the 
+Intel Movidius Neural Compute Stick. 
+The NCSDK includes a set of software tools to compile, profile, and check 
+(validate) DNNs as well as the Intel® Movidius™ Neural Compute API (Intel 
+Movidius NCAPI) for application development in C/C++ or Python.
+The NCSDK has two general usages:
+Profiling, tuning, and compiling a DNN model on a development computer 
+(host system) with the tools provided in the NCSDK.
+Prototyping a user application on a development computer (host system), 
+which accesses the neural compute device hardware to accelerate DNN inferences 
+using the NCAPI. 
+In fact, the tool made available by Intel allows to compile the file obtained; 
+simply invoking the following expression from the command line:
+%
+\code{\$ mvNCCompile inception-v1.meta -s 12 -in=input -on=predictions/Softmax -is 224 224 -o InceptionV1.graph}
+%
+You can see that in the expression following the command there are some 
+arguments, let's examine them:
+\begin{itemize}
+\item \textbf{*.pb} the trained network file.
+\item \textbf{[-s max\_number\_of\_shaves]} Specify the maximum number of SHAVEs 
+to use for network layers (default: 1).
+The number of available SHAVEs depends on your neural compute device; refer to 
+figure \ref{fig:architecture}
+\item \textbf{[-in input\_node\_name]} This option is required for TensorFlow 
+networks. 
+You can use the name parameter (available for most layers) when creating your 
+network and pass that name into this option.
+\item \textbf{[-on output\_node\_name]} Specify an alternative end point for the 
+network. 
+By default the network’s end point is the output layer. 
+This option enables partial network processing. When used together with the 
+-in option, the user can isolate one or more layers in a network for analysis.
+\item \textbf{[-is input\_width input\_height]} Specify input dimensions for 
+networks that do not have dimension constraints on the input layer.
+This option assumes that the batch size is 1 and the number of channels is 3.
+\item \textbf{[-o output\_graph\_filename]} Specify an output graph file-name. 
+If this is not provided, \emph{``graph"} will be used for the file-name.
+\end{itemize}
+
 \subsection{Result}
-\label{subsection:result}
+\label{subsec:result}
+
+
+
+
