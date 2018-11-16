@@ -5,7 +5,11 @@
 \usepackage{amssymb}
 \usepackage{xcolor}
 \definecolor{light-gray}{gray}{0.95}
-\newcommand{\code}[1]{\colorbox{light-gray}{\texttt{#1}}}
+\usepackage[skins]{tcolorbox}
+\usepackage{setspace}
+\tcbset{commonstyle/.style={boxrule=0pt,sharp corners,enhanced jigsaw,nobeforeafter,
+	boxsep=0pt,left=\fboxsep,right=\fboxsep}}
+\newtcolorbox{mycolorbox}[1][]{commonstyle,#1}
 
 %--------package image---------------------------------------------------------
 \usepackage{graphicx}

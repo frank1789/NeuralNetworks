@@ -130,7 +130,7 @@ The Intel Movidius Neural Compute SDK enables rapid prototyping and deployment
 of deep neural networks (DNNs) on compatible neural compute devices like the 
 Intel Movidius Neural Compute Stick. 
 The NCSDK includes a set of software tools to compile, profile, and check 
-(validate) DNNs as well as the Intel® Movidius™ Neural Compute API (Intel 
+(validate) DNNs as well as the Intel Movidius Neural Compute API (Intel 
 Movidius NCAPI) for application development in C/C++ or Python.
 The NCSDK has two general usages:
 Profiling, tuning, and compiling a DNN model on a development computer 
@@ -139,11 +139,14 @@ Prototyping a user application on a development computer (host system),
 which accesses the neural compute device hardware to accelerate DNN inferences 
 using the NCAPI. 
 In fact, the tool made available by Intel allows to compile the file obtained; 
-simply invoking the following expression from the command line:
-%
-\code{\$ mvNCCompile inception-v1.meta -s 12 -in=input -on=predictions/Softmax -is 224 224 -o InceptionV1.graph}
-%
-You can see that in the expression following the command there are some 
+simply invoking the following expression from the command line:\\
+{\setstretch{1.5}
+\\
+\begin{mycolorbox}[colback=light-gray]
+\texttt{\$ mvNCCompile model.pb\\  -s 12 -in=input\_1 \\-on=predictions/Softmax -is 224 224 \\-o conv\_model.graph}
+\end{mycolorbox}
+}
+\\You can see that in the expression following the command there are some 
 arguments, let's examine them:
 \begin{itemize}
 \item \textbf{*.pb} the trained network file.
@@ -169,7 +172,3 @@ If this is not provided, \emph{``graph"} will be used for the file-name.
 
 \subsection{Result}
 \label{subsec:result}
-
-
-
-
