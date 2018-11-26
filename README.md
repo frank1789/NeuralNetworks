@@ -64,12 +64,18 @@ To clone the repository can use the following command
 git clone https://github.com/frank1789/NeuralNetworks.git
 ```
 
-then ton run use:
+To run on Host/Guest machine use:
 ```shell
 cd NeuralNetworks
 sh test.sh
 ```
-
+ To run on  guest machine with Intel movidius use:
+ ```shell
+cd NeuralNetworks
+sh test.sh movidius
+```
+remember the neural compute strick must be attached.
+ 
 ## Install virtual envoirments 
 Since the development kit provided by intel works in Linux Ubuntu environment it is recommended to install and configure a virtual machine:
 + download [VirtualBox](https://www.virtualbox.org/wiki/Downloads) and VirtualBox Extension Pack
