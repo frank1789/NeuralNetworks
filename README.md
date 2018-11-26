@@ -149,3 +149,18 @@ Once you have trained  neural network use model file for conversion in graph for
 ```shell
 python3 keras2ncsgraph.py -k model.h5 -n converted_model
 ```
+
+## Report 
+The report is available on this [branch]() and can be downloaded from the command:
+```
+git clone -b report https://github.com/frank1789/NeuralNetworks.git
+```
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+
+## Acknowledgments
+
+* Embedded system lab @UNITN
+* HPC Cluster | ICTS - University of Trento - ICTS@unitn
