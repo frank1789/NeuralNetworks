@@ -53,10 +53,18 @@ The packages needed are enclosed in file “requirements.txt“, to install, typ
 ```shell
 pip3 install -r requirements.txt
 ```
+or
+```python
+K.set_learning_phase(0)
+```
+otherwise it will not be possible to convert the model into a graph format, as it will be lost in final values in the forecast.
 
-NB: if you want run the script with CUDA is necessary install _"tensorflow-gpu"_ by type:
-```shell
-pip3 install tensorflow-gpu
+### GPU
+There may be memory allocation problems in the GPU, at the moment this solution
+is used in the file *face_recognition.py*
+```Python
+gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.8, allow_growth=False)
+sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
 ```
 ## Installation
 To clone the repository can use the following command
@@ -103,18 +111,31 @@ Once completed, we configure the virtual guest machine as shown in the following
 
 ### Install Intel Movidius sdk
 
-To install NCSDK 2.x you can use the following command to clone the [ncsdk2](https://github.com/movidius/ncsdk/tree/ncsdk2) branch
-```shell
-git clone -b ncsdk2 https://github.com/movidius/ncsdk.git
-```
+##### Allowing GPU memory growth
+By default, TensorFlow maps nearly all of the GPU memory of all GPUs (subject to
+   CUDA_VISIBLE_DEVICES) visible to the process. This is done to more
+   efficiently use the relatively precious GPU memory resources on the devices
+   by reducing memory fragmentation.
 
-#### Installation
+In some cases it is desirable for the process to only allocate a subset of the
+available memory, or to only grow the memory usage as is needed by the process.
+TensorFlow provides two Config options on the Session to control this.
 
-The provided Makefile helps with installation. Clone the [repository](https://github.com/movidius/ncsdk/tree/ncsdk2) and then run the following command to install the NCSDK:
-```shell
-make install
+The first is the **allow_growth** option, which attempts to allocate only as
+much GPU memory based on runtime allocations: it starts out allocating very
+little memory, and as Sessions get run and more GPU memory is needed, we extend
+the GPU memory region needed by the TensorFlow process. Note that we do not
+release memory, since that can lead to even worse memory fragmentation.
+To turn this option on, set the option in the ConfigProto by a script optimized
+already implemented:
+```python
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True  # dynamically grow the memory used on the GPU
+config.log_device_placement = True      # to log device placement (on which device the operation ran)
+config.allow_soft_placement = True      # search automatically free GPU
+sess = tf.Session(config=config)
+kbe.set_session(sess)                   # set this TensorFlow session as the default session for Keras
 ```
-#### Examples
 
 The Neural Compute SDK also includes examples. After cloning and running 'make install,' run the following command to install the examples:
 ```shell
@@ -124,16 +145,7 @@ make examples
 This script allows you to organize a dataset, downloaded from the internet or made in-house, as a structure of folders containing sets for training, validation and testing of the neural network.
 <div style="text-align:center"><img src ="https://github.com/frank1789/NeuralNetworks/blob/master/img/structure.png" /></div>
 
-This structure is congenial for use with Keras specifically with the <em>**[ flow_from_directory](https://keras.io/preprocessing/image/)**</em> method.
-Be aware of the fact that if the folders are empty, the result will be a reduced dataset because it will automatically skip.
-It is necessary to pass in argument:
-- absolute path folder containing the raw dataset (-d);
-- absolute path folder containing the raw test set (-t);
-- integer value between 0 100 for dividing the dataset (-s).
-```shell
-python3 makeDataset.py -d ./data -t ./test -s 30
-```
-After this it is possible to begin to train the neural network through the script 'name' passing in argument:
+## License
 
 | Argument |  <nobr>Long Description</nobr> | Help |
 |:--------:|--------------|--------|
