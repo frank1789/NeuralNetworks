@@ -1,8 +1,8 @@
 \section{Building Convolutional Neural Network with Keras}
 \label{sec:buildcnn}
 %
-As we discussed in the last section (\ref{subsec:introduction_keras}), Keras has a 
-series of layers that were specifically created to support convolutional 
+As we discussed in the last section (\ref{subsec:introduction_keras}), Keras 
+has a series of layers that were specifically created to support convolutional 
 neural networks.
 By definition, a fully connected layer connects every neuron in the layer and 
 at the first layer it's connected to all the inputs. 
@@ -14,8 +14,8 @@ This issue appears often, it is one of reasons why deep neural networks can
 take a long time to learn. 
 To understand this issue a bit more, let's consider the case of working with 
 images. 
-Assume that we have an 8 megapixel image and that we want to learn something 
-from this image. 
+Assume that we have an 8 megapixel image and that we want to learn 
+something from this image. 
 To do that, we construct a network with a dense layer. 
 Since every pixel in the image can contain unique data, they each contribute 
 uniquely to determining the logic resulting from analysing the image. 
@@ -128,7 +128,7 @@ Two common functions are max pooling and average pooling.
 By calculating the max of an input region, the output summarizes intensity of
 surrounding values.
 Pooling layers also have a kernel and padding, and are moved in strides, as 
-represented in figure \ref{fig:pooling}
+represented in figure \ref{fig:pooling}.
 To calculate the output size of a pooling operation, you can use the formula:
 \begin{equation}
  \text{Input Width} - \text{kernel width} + 2 * \text{padding}  / \text{strides} + 1
@@ -161,6 +161,6 @@ time.
 \label{fig:fully_connected}
 \end{figure}
 %
-In a CNN, the input is fed from the pooling layer into the fully connected layer.
+\\\noindent In a CNN, the input is fed from the pooling layer into the fully connected layer.
 Depending on the task, a regression or classification algorithm can be applied
 to create the desired output, a representative example is shown in figure \ref{fig:fully_connected}.
