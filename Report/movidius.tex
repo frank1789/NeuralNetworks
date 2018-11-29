@@ -68,17 +68,17 @@ second) of performance within a nominal 1 Watt power envelope.
 The Myriad 2 architecture, show in figure \ref{fig:architecture}, includes enough 
 performance to support multiple cameras with flexible image signal processing 
 pipelines for each camera, and software programmable vision processing with 
-fixed- and floating-point data-types supported. 
-A robust overall data-flow design ensures mitigation of processing bottlenecks.\\
+fixed- and floating-point data-types supported.\\ 
+A robust overall data-flow design ensures mitigation of processing bottlenecks.
 Myriad 2 MA2x5x incorporates an innovative approach to combine image signal 
-processing with vision processing. 
+processing with vision processing.\\ 
 A set of imaging/vision hardware accelerators supports a world-class ISP pipeline 
 without any round trips to memory; at the same time they are re-purposed to 
 accelerate developers' vision processing algorithms in conjunction with a set of 
-special purpose VLIW vision processor cores. 
+special purpose VLIW\footnote{Very Long Instruction Word} vision processor cores. 
 All processing elements are tied together with a multi-ported memory that enables 
 implementation of demanding applications with high efficiency.\cite{intel}\\
-MYRIAD 2 SoC SPECIFICATIONS
+\\MYRIAD 2 SoC SPECIFICATIONS\\
 \begin{itemize}
 	\item Heterogeneous, high throughput, multi-core architecture based on:
 	\begin{itemize}
@@ -125,19 +125,21 @@ MYRIAD 2 SoC SPECIFICATIONS
 \label{sec:checknetwork}
 The Intel Movidius Neural Compute SDK enables rapid prototyping and deployment 
 of deep neural networks (DNNs) on compatible neural compute devices like the 
-Intel Movidius Neural Compute Stick. 
+Intel Movidius Neural Compute Stick.\\ 
 The NCSDK includes a set of software tools to compile, profile, and check 
-(validate) DNNs as well as the Intel Movidius Neural Compute API (Intel 
-Movidius NCAPI) for application development in C/C++ or Python.
+(validate) DNNs, as well as the Intel Movidius Neural Compute API (Intel 
+Movidius NCAPI) for the development of applications in C/C++ or Python.
 The NCSDK has two general usages:
-Profiling, tuning, and compiling a DNN model on a development computer 
-(host system) with the tools provided in the NCSDK.
-Prototyping a user application on a development computer (host system), 
-which accesses the neural compute device hardware to accelerate DNN inferences 
-using the NCAPI. 
+\begin{enumerate}
+	\item Profiling, tuning, and compiling a DNN model on a development computer 
+	(\emph{host system}) with the tools provided in the NCSDK.
+	\item Prototyping a user application on a development computer (\emph{host system}), 
+which accesses the neural compute device hardware in order to accelerate DNN 
+inferences using the NCAPI. 
+\end{enumerate}
 Once the neural network training is complete, the file containing the 
-definitions and weights of the various levels must be check the compatibility 
-by Intel NCSDK command line tool.
+definitions and weights of the various levels must be checked for compatibility 
+by using the Intel NCSDK command line tool.
 %
 \subsection{Check network}
 \label{subsect:mvnCCheck} 
@@ -171,52 +173,51 @@ Movidius NCS, and it also runs an inference with the network’s native framewor
 %
 Finally the mvNCCheck tool displays a brief report that compares inference
 results from the Intel Movidius NCS and from the native framework. 
-These resultscan be used to confirm that a neural network is producing accurate 
+These results can be used to confirm that a neural network is producing accurate 
 results after the \texttt{fp32} to \texttt{fp16} conversion on the Intel Movidius NCS. 
 %
 mvNCCheck can also be used as a tool to simply check if a network is compatible
 with the Intel Movidius NCS. There are a number of limitations that could cause
 a network to not be compatible with the Intel Movidius NCS including, but not
 limited to, memory constraints, layers not being supported, or unsupported
-neural network architectures.
+neural network architectures.\\\\
 \begin{mycolorbox}[colback=light-gray]
 	{\tiny\texttt{\input{check.tex}}}
 \end{mycolorbox}
 %
-Let’s examine the output of mvNCCheck above.
+\\\\Now the output of mvNCCheck above (box above) will be examined:
 \begin{itemize}
-\item The results in first three lines are the top five Intel NCS inference results. 
-\item The results in second three lines are the top five framework results from 
+\item The first three lines represent the top five Intel NCS inference results. 
+\item The following second three lines are the top five framework outcomes from 
 either Caffe or TensorFlow.
 \item The comparison output (indicates as ``\emph{Obtained values}") shows 
 various comparisons between the two inference results.
 \end{itemize}
 %
 \subsection{Profile a network}
-As see before in \ref{sec:checknetwork} part of tool is mvNCProfile, which is 
-a command line tool that compiles a network for use with the 
-Intel Movidius Neural Compute SDK, runs the network on a connected neural 
-compute device, and outputs text and HTML profile reports.
+As seen before in section (\ref{sec:checknetwork}), mvNCProfile is part of the 
+SDK. It runs the network on a connected neural 
+compute device, and then outputs texts (box below) and HTML profile reports.
 The profiling data contains layer-by-layer statistics about the performance of 
 the network. 
 This is helpful in determining how much time is spent on each layer to narrow 
-down potential changes to the network to improve the total inference time.\\\\
+down potential changes to the network to improve the total inference time.\newpage
 {\tiny\texttt{\input{profile.tex}}}
 %
 \subsection{Compile network}
 \label{subsec:compilenetwork}
-Once the compatibility has been verified using the tools described above of the 
-trained network, perform the compilation by the tool mvNCCompile.
-In fact, the tool made available by Intel allows to compile the file obtained; 
-simply invoking the following expression from the command line:\\
+Once the compatibility has been verified using the tools of the 
+trained network, it is necessary to perform the compilation by the tool mvNCCompile.
+In fact, the tool (made available by Intel) allows to compile the file obtained by
+simply typing the following expression from the command line:\\
 {\setstretch{1.5}
 \\
 \begin{mycolorbox}[colback=light-gray]
 	\scriptsize{\texttt{\$ mvNCCompile model.pb -s 12 -in input\_1 \\-on predictions/Softmax -is 224 224 \\-o conv\_model.graph}}
 \end{mycolorbox}
 }
-\\You can see that in the expression following the command there are some 
-arguments, let's examine them:
+\\In the command of the above expression, some arguments are present.
+Now, they will be examined:
 \begin{itemize}
 \item \textbf{model.pb} the trained network file.
 \item \textbf{[-s max\_number\_of\_shaves]} Specify the maximum number of SHAVEs 
@@ -238,5 +239,5 @@ This option assumes that the batch size is 1 and the number of channels is 3.
 \item \textbf{[-o output\_graph\_filename]} Specify an output graph file-name. 
 If this is not provided, \emph{``graph"} will be used for the file-name.
 \end{itemize}
-Once the converted into a format that can be read by the Movidius device, can perform 
-the inference on laptop or any other device, such as Raspberry board.
+Once the model is converted into a format readable by the Movidius device, the 
+inference can be performed on a laptop or any other devices, such as Raspberry board.

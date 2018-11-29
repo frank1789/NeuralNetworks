@@ -3,32 +3,32 @@
 In conclusion, it can be observed that a trained neural network can reach an 
 accuracy of $99\%$ by setting a sufficient number of epochs. In addition, a 
 good training and validation dataset is necessary, but not sufficient to 
-guarantee the result, given that it is supervised learning as seen in the 
-section \ref{subsec:supervised-learnig}, it is necessary to spend time to 
-prepare meaningful images.
-On the other hand, it is not possible to train a neural network on a home 
-computer much less on a laptop as a result it is necessary to use a HPC with 
-nodes with performing GPUs, and at present they are guaranteed by Nvidia 
-hardware and CUDA libraries.
+guarantee the result, given that it is a supervised learning as seen in the 
+section \ref{subsec:supervised-learnig}.
+Hence, it is necessary to prepare meaningful images.\\
+On the other hand, it is not possible to train a neural network using a home 
+computer neither a laptop; a HPC is needed and all its computing nodes have to be
+equipped with GPUs. 
+Nowadays, GPUs are guaranteed by Nvidia hardware and CUDA libraries.
 At present there is no single encoding to save the neural network model, this 
 necessarily implies that the network must be converted from time to time in 
-the most appropriate format depending on the chosen framework.
-This fact implies that some operations or information are not correctly 
-represented or in the worst case unsupported.
-Thanks to the API made available by Intel, it is possible to quickly 
+the most appropriate format, depending on the chosen framework.
+This fact entail that some operations or information are not correctly 
+represented or, in the worst case, unsupported.
+Thanks to the API made available by Intel, it is possible to  
 prototyping and deepening neural networks for the Movidius neural stick on the 
-computer used for development and also on SoC devices such as Raspberry.
-However, a still unripe software is highlighted, in fact it is necessary:
+ development computer and on SoC devices, such as Raspberry.
+However, it is still a  not-whole-developed software; hence, to run, it requires:
 \begin{itemize}
-\item a specific version of Linux Ubuntu, in fact only version 16.04 is 
-supported, the higher version are not supported
-\item The Keras framework is not officially support, in fact some model 
-conversions are needed.
-\item Some operations performed on a neural network inherent in the framework 
-are not supported.
+\item a specific version of Linux Ubuntu - only the version 16.04 is 
+supported, while the higher versions are not supported;
+\item the convertion of a model, because the Keras framework is not officially supported;
+\item the modification or the elimination of some operations available in the 
+framework because they are not supported.
 \end{itemize}
 Operation on Raspberry is difficult because the \emph{Raspbian} operating system
-is a derivative of Debian Linux and does not officially support TensorFlow.
-Although the demos released by Intel on the Caffe framework run normally, the
-custom models based on other frameworks, as in our case TensorFlow, may present 
-malfunctions due to dependencies and porting libraries.
+is a derivative of Debian Linux and it does not officially support TensorFlow.
+Although the demos, released by Intel and based on the Caffe framework, run 
+normally, the custom models may present malfunctions due to dependencies and 
+porting libraries, because they are developed through other frameworks (as in 
+our case TensorFlow).
