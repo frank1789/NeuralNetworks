@@ -121,11 +121,8 @@ MYRIAD 2 SoC SPECIFICATIONS
 \label{fig:architecture}
 \end{figure}
 %
-\subsection{Conversion}
-\label{subsection:conversion}
-Once the neural network training is complete, the file containing the 
-definitions and weights of the various levels must be converted into a format 
-that can be read by the Movidius device.
+\section{Validate a network}
+\label{sec:checknetwork}
 The Intel Movidius Neural Compute SDK enables rapid prototyping and deployment 
 of deep neural networks (DNNs) on compatible neural compute devices like the 
 Intel Movidius Neural Compute Stick. 
@@ -138,12 +135,84 @@ Profiling, tuning, and compiling a DNN model on a development computer
 Prototyping a user application on a development computer (host system), 
 which accesses the neural compute device hardware to accelerate DNN inferences 
 using the NCAPI. 
+Once the neural network training is complete, the file containing the 
+definitions and weights of the various levels must be check the compatibility 
+by Intel NCSDK command line tool.
+%
+\subsection{Check network}
+\label{subsect:mvnCCheck} 
+As part of the NCSDK, mvnCheck is a command line tool that checks the validity 
+of TensorFlow neural network on a neural compute device.
+The check is done by running an inference on both the device and in software on
+the host computer using the supplied network and appropriate framework
+libraries.  
+The results for both inferences are compared to determine a if the
+network  passes or fails. The top 5 inference results are provided as output.
+This tool works best with image classification networks. 
+As part of the NCSDK, mvNCCheck serves three main purposes:
+%
+\begin{itemize} 
+	\item ensure accuracy when the data is converted from \texttt{fp32} to \texttt{fp16};
+	\item quickly find out if a network is compatible with the Intel NCS; 
+	\item quickly debug the network layer by layer;
+\end{itemize} 
+%
+To ensure accurate results, mvNCCheck compares inference results between the 
+Intel Movidius NCS and the network’s native framework. 
+Since the Intel Movidius NCS and NCSDK use 16-bit floating point data, it must 
+convert the incoming 32-bit floating point data to 16-bit floats. 
+The conversion from \texttt{fp32} to \texttt{fp16} can cause minor rounding issues to
+occur in the inference results, and this is where the mvNCCheck tool can come in
+handy. 
+%
+First the mvNCCheck tool reads in the network and converts the model to Intel
+Movidius NCS format. It then runs an inference through the network on the Intel
+Movidius NCS, and it also runs an inference with the network’s native framework.
+%
+Finally the mvNCCheck tool displays a brief report that compares inference
+results from the Intel Movidius NCS and from the native framework. 
+These resultscan be used to confirm that a neural network is producing accurate 
+results after the \texttt{fp32} to \texttt{fp16} conversion on the Intel Movidius NCS. 
+%
+mvNCCheck can also be used as a tool to simply check if a network is compatible
+with the Intel Movidius NCS. There are a number of limitations that could cause
+a network to not be compatible with the Intel Movidius NCS including, but not
+limited to, memory constraints, layers not being supported, or unsupported
+neural network architectures.
+\begin{mycolorbox}[colback=light-gray]
+	{\tiny\texttt{\input{check.tex}}}
+\end{mycolorbox}
+%
+Let’s examine the output of mvNCCheck above.
+\begin{itemize}
+\item The results in first three lines are the top five Intel NCS inference results. 
+\item The results in second three lines are the top five framework results from 
+either Caffe or TensorFlow.
+\item The comparison output (indicates as ``\emph{Obtained values}") shows 
+various comparisons between the two inference results.
+\end{itemize}
+%
+\subsection{Profile a network}
+As see before in \ref{sec:checknetwork} part of tool is mvNCProfile, which is 
+a command line tool that compiles a network for use with the 
+Intel Movidius Neural Compute SDK, runs the network on a connected neural 
+compute device, and outputs text and HTML profile reports.
+The profiling data contains layer-by-layer statistics about the performance of 
+the network. 
+This is helpful in determining how much time is spent on each layer to narrow 
+down potential changes to the network to improve the total inference time.\\\\
+{\tiny\texttt{\input{profile.tex}}}
+%
+\subsection{Compile network}
+\label{subsec:compilenetwork}
+Once the compatibility has been verified using the tools described above of the 
+trained network, perform the compilation by the tool mvNCCompile.
 In fact, the tool made available by Intel allows to compile the file obtained; 
 simply invoking the following expression from the command line:\\
 {\setstretch{1.5}
 \\
 \begin{mycolorbox}[colback=light-gray]
-\texttt{\$ mvNCCompile model.pb\\  -s 12 -in=input\_1 \\-on=predictions/Softmax -is 224 224 \\-o conv\_model.graph}
+	\scriptsize{\texttt{\$ mvNCCompile model.pb -s 12 -in input\_1 \\-on predictions/Softmax -is 224 224 \\-o conv\_model.graph}}
 \end{mycolorbox}
 }
 \\You can see that in the expression following the command there are some 
@@ -169,6 +238,5 @@ This option assumes that the batch size is 1 and the number of channels is 3.
 \item \textbf{[-o output\_graph\_filename]} Specify an output graph file-name. 
 If this is not provided, \emph{``graph"} will be used for the file-name.
 \end{itemize}
-
-\subsection{Result}
-\label{subsec:result}
+Once the converted into a format that can be read by the Movidius device, can perform 
+the inference on laptop or any other device, such as Raspberry board.

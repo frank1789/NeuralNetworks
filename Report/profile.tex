@@ -1,0 +1,46 @@
+\begin{tabular}{llrrrr}
+\rowcolor{light-gray}	\multicolumn{5}{l}{Detailed Per Layer Profile}\\
+\rowcolor{light-gray}	    		&                                           		&      			&	Bandwidth   & time\\
+\rowcolor{light-gray}	Layer    & Name                                      & 	MFLOPs 	&	(MB/s)   		& (ms)\\
+\rowcolor{light-gray}	\multicolumn{5}{l}{======================================================================}\\
+\rowcolor{light-gray}	0  &  block1\_conv1/Relu                   		&   173.4  	&	 304.6 		&  8.496\\
+\rowcolor{light-gray}	1  &  block1\_conv2/Relu                   		&  3699.4  	&	 672.8 		& 82.044\\
+\rowcolor{light-gray}	2  &  block1\_pool/MaxPool                 		&     3.2  	&	 833.9 		&  7.345\\
+\rowcolor{light-gray}	3  &  block2\_conv1/Relu                   		&  1849.7  	&	 413.7 		& 33.660\\
+\rowcolor{light-gray}	4  &  block2\_conv2/Relu                   		&  3699.4  	&	 304.5 		& 91.443\\
+\rowcolor{light-gray}	5  &  block2\_pool/MaxPool                 		&     1.6  	&	 925.0 		&  3.311\\
+\rowcolor{light-gray}	6  &  block3\_conv1/Relu                   		&  1849.7  	&	 173.1 		& 43.093\\
+\rowcolor{light-gray}	7  &  block3\_conv2/Relu                   		&  3699.4  	&	 171.3 		& 87.044\\
+\rowcolor{light-gray}	8  &  block3\_conv3/Relu                   		&  3699.4  	&	 172.4 		& 86.472\\
+\rowcolor{light-gray}	9  &  block3\_pool/MaxPool                 		&     0.8  	&	 935.1 		& 1.638\\
+\rowcolor{light-gray}	10 &  block4\_conv1/Relu                   		&  1849.7  	&	 159.0 		& 35.866\\
+\rowcolor{light-gray}	11 &  block4\_conv2/Relu                   		&  3699.4  	&	 164.2 		& 69.409\\
+\rowcolor{light-gray}	12 &  block4\_conv3/Relu                   		&  3699.4  	&	 163.9 		& 69.538\\
+\rowcolor{light-gray}	13 &  block4\_pool/MaxPool                 		&     0.4  	&	 927.7 		&  0.826\\
+\rowcolor{light-gray}	14 &  block5\_conv1/Relu                   		&   924.8  	&	 302.7 		& 20.588\\
+\rowcolor{light-gray}	15 &  block5\_conv2/Relu                   		&   924.8  	&	 301.1 		& 20.697\\
+\rowcolor{light-gray}	16 &  block5\_conv3/Relu                   		&   924.8  	&	 300.7 		& 20.722\\
+\rowcolor{light-gray}	17 &  block5\_pool/MaxPool                 		&     0.1  	&	 900.5 		&  0.214\\
+\rowcolor{light-gray}	18 &  dense\_1/Relu                        		&   205.5  	&	2186.2 		& 89.679\\
+\rowcolor{light-gray}	19 &  dense\_2/Relu                        		&    33.6  	&	2174.6 		& 14.722\\
+\rowcolor{light-gray}	20 &  predictions/BiasAdd                  		&    0.0   	&	351.7  		& 0.067\\
+\rowcolor{light-gray}	21 &  predictions/Softmax                  		&    0.0   	&	  0.2  		& 0.043\\
+\rowcolor{light-gray}	\multicolumn{5}{l}{----------------------------------------------------------------------}\\
+\rowcolor{light-gray}	   &  Total inference time 						&  			&       		& 786.92\\
+\rowcolor{light-gray}	\multicolumn{5}{l}{----------------------------------------------------------------------}\\
+\end{tabular}
+% Result:  (1, 1, 2)\\
+% 1) 0 0.9062\\
+% 2) 1 0.0936\\
+% Expected:  (1, 1, 2)\\
+% 1) 0 0.9060939\\
+% 2) 1 0.093906164\\
+% ------------------------------------------------------------\\
+%  Obtained values \\
+% ------------------------------------------------------------\\
+%  Obtained Min Pixel Accuracy: 0.030707026598975062\% (max allowed=2\%), Pass\\
+%  Obtained Average Pixel Accuracy: 0.023967662127688527\% (max allowed=1\%), Pass\\
+%  Obtained Percentage of wrong values: 0.0\% (max allowed=0\%), Pass\\
+%  Obtained Pixel-wise L2 error: 0.024897144849700414\% (max allowed=1\%), Pass\\
+%  Obtained Global Sum Difference: 0.0004343390464782715\\
+% ------------------------------------------------------------\\
