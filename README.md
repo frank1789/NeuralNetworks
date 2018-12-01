@@ -58,7 +58,7 @@ NB: if you want run the script with CUDA is necessary install _"tensorflow-gpu"_
 ```shell
 pip3 install tensorflow-gpu
 ```
-
+## Installation
 To clone the repository can use the following command
 ```shell
 git clone https://github.com/frank1789/NeuralNetworks.git
@@ -69,14 +69,20 @@ To run on Host/Guest machine use:
 cd NeuralNetworks
 sh test.sh
 ```
- To run on  guest machine with Intel movidius use:
+To run on  guest machine with Intel Movidius use:
  ```shell
 cd NeuralNetworks
 sh test.sh movidius
 ```
+
+To run on  Raspberry Pi 3 model B with Intel Movidius use:
+ ```shell
+cd NeuralNetworks
+sh test.sh reduced-nocompile
+```
 remember the neural compute strick must be attached.
- 
-## Install virtual envoirments 
+
+## Install virtual envoirments
 Since the development kit provided by intel works in Linux Ubuntu environment it is recommended to install and configure a virtual machine:
 + download [VirtualBox](https://www.virtualbox.org/wiki/Downloads) and VirtualBox Extension Pack
 + download image iso Linux [Ubuntu](https://www.ubuntu-it.org/download) 16.04 LTS (higher OS version are not supported by movidius software)
@@ -156,7 +162,7 @@ Once you have trained  neural network use model file for conversion in graph for
 python3 keras2ncsgraph.py -k model.h5 -n converted_model
 ```
 
-## Report 
+## Report
 The report is available on this [branch]() and can be downloaded from the command:
 ```
 git clone -b report https://github.com/frank1789/NeuralNetworks.git
