@@ -130,10 +130,10 @@ if [ -z "$2" ] && [ ! -d "${test_folder}" ]; then
 	mkdir -p $test_folder && tar xf $zip_test_folder -C $test_folder --strip-components=1
 	rm $zip_test_folder
 	# launch script
-	echo "python3 prediction.py --configfile ${config_file} --model ${model_file} --test $2"
-	python3 prediction.py --configfile ${config_file} --model ${model_file} --test $2
+	echo "python3 prediction.py --configfile ${config_file} --model ${model_file} --test ${test-folder}"
+	python3 prediction.py --configfile ${config_file} --model ${model_file} --test ${test-folder}
 else
 # launch script
-echo "python3 prediction.py --configfile ${config_file} --model ${model_file} --test ${test_folder}"
-python3 prediction.py --configfile ${config_file} --model ${model_file} --test ${test_folder}
+echo "python3 prediction.py --configfile ${config_file} --model ${model_file} --test $2"
+python3 prediction.py --configfile ${config_file} --model ${model_file} --test $2
 fi
