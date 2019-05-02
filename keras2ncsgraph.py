@@ -10,8 +10,9 @@ from utilityfunction import Spinner
 import tensorflow as tf
 from keras import backend as kbe
 from keras.models import model_from_json, load_model
-from tensorflow.python.framework import graph_io
-from tensorflow.python.framework import graph_util
+
+kbe.set_learning_phase(0)
+sess = kbe.get_session()
 
 # suppress warning and error message tf
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -20,7 +21,7 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 class KerasToNCSGraph(object):
     model_ = None  # store model
     tf_model_ = None  # tensorflow meta file graph structure
-    base_dir = './ModelGraph'
+    base_dir = os.getcwd() + '/ModelGraph'
     tf_model_dir = base_dir + '/tf_model/'  # folder tensorflow model
     graph_dir = base_dir + '/graph_model/'  # folder graph model
 
@@ -41,6 +42,38 @@ class KerasToNCSGraph(object):
         self.input_layer_name = ""
         self.wait = Spinner()
         self.lock = threading.Lock()
+
+    @staticmethod
+    def freeze_session(session, keep_var_names=None, output_names=None, clear_devices=True):
+        """
+        Freezes the state of a session into a pruned computation graph.
+
+        Creates a new computation graph where variable nodes are replaced by
+        constants taking their current value in the session. The new graph will be
+        pruned so subgraphs that are not necessary to compute the requested
+        outputs are removed.
+        :param: session The TensorFlow session to be frozen.
+        :param: keep_var_names A list of variable names that should not be frozen,
+                              or None to freeze all the variables in the graph.
+        :param: output_names Names of the relevant graph outputs.
+        :param: clear_devices Remove the device directives from the graph for better portability.
+        :return: The frozen graph definition.
+        """
+        from tensorflow.python.framework.graph_util import convert_variables_to_constants
+        graph = session.graph
+        with graph.as_default():
+            freeze_var_names = list(set(v.op.name for v in tf.global_variables()).difference(keep_var_names or []))
+            output_names = output_names or []
+            output_names += [v.op.name for v in tf.global_variables()]
+            input_graph_def = graph.as_graph_def()
+            if clear_devices:
+                for node in input_graph_def.node:
+                    node.device = ""
+            frozen_graph = convert_variables_to_constants(session,
+                                                          input_graph_def,
+                                                          output_names,
+                                                          freeze_var_names)
+            return frozen_graph
 
     def set_keras_model_file(self, model_file='', weights_file=None, view_summary=False):
         """
@@ -90,7 +123,7 @@ class KerasToNCSGraph(object):
         if view_summary:
             print('Model Summary:', self.model_.summary())  # print summary model
 
-    def convertGraph(self, numoutputs=1, prefix='k2tfout', name='model'):
+    def convertGraph(self, name="model"):
         """
         Converts an HD5F file to a .pb file for use with Tensorflow.
         :param  numoutputs (int)
@@ -98,33 +131,26 @@ class KerasToNCSGraph(object):
         :param  name (str) the name of ProtocolBuffer file
         """
         print("Start conversion in Protocol Buffer")
-        filename = name + '.pb'
-        kbe.set_learning_phase(0)
-        net_model = self.model_
-        # Alias the outputs in the model - this sometimes makes them easier to access in TF
-        pred = [None] * numoutputs
-        pred_node_names = [None] * numoutputs
-        for i in range(numoutputs):
-            pred_node_names[i] = prefix + '_' + str(i)
-            pred[i] = tf.identity(net_model.output[i], name=pred_node_names[i])
-        print('Output nodes names are: ', pred_node_names)
-        if len(pred_node_names) == 1:
-            self.output_layer_name = pred_node_names[0]
+        frozen_graph = self.freeze_session(kbe.get_session(),
+                                           output_names=[out.op.name for out in self.model_.outputs])
 
-        sess = kbe.get_session()
+        f = '{}.pb'.format(name)
+        tf.train.write_graph(frozen_graph, self.tf_model_dir, f, as_text=False)
+        print('Saved the graph definition at: ', self.tf_model_dir, f)
 
         # Write the graph in human readable
-        f = 'graph_def_for_reference.pb.ascii'
+        f = '{}.pb.ascii'.format(name)
         tf.train.write_graph(sess.graph.as_graph_def(), self.tf_model_dir, f, as_text=True)
-        print('Saved the graph definition in ascii format at: ', os.path.join(self.tf_model_dir, f))
-
-        # Write the graph in binary .pb file
-        constant_graph = graph_util.convert_variables_to_constants(sess, sess.graph.as_graph_def(), pred_node_names)
-        graph_io.write_graph(constant_graph, self.tf_model_dir, filename, as_text=False)
-        print('Saved the constant graph (ready for inference) at: ', os.path.join(self.tf_model_dir, filename))
-        self.tf_model_ = os.path.join(self.tf_model_dir, filename)
+        print('Saved the graph definition in ascii format at: ', self.tf_model_dir, f)
+        # save last layer for output nodes
+        self.output_layer_name = "".join(self.get_names())
+        print("Output layer node: ", self.output_layer_name)
+        self.tf_model_ = os.path.join(self.tf_model_dir, name + ".pb")
         # compile
         self.__compile_graph_model(name_graph_model_file=name)
+
+    def get_names(self):
+        return [out.op.name for out in self.model_.outputs]
 
     def __compile_graph_model(self, name_graph_model_file='model'):
         """
@@ -137,9 +163,9 @@ class KerasToNCSGraph(object):
         cmd = 'mvNCCompile {0} -s 12 -in {1} -on {2} -o {3}'.format(self.tf_model_, 'input_1',
                                                                     self.output_layer_name,
                                                                     graph_model)
+        print("==> copy and paste command below to create a graph model for Intel Movidius:")
         print(cmd)
         # start compile
-        os.system(cmd)
 
     def __delete_tmp_directory(self):
         if os.path.exists(self.base_dir):
@@ -197,7 +223,7 @@ if __name__ == '__main__':
     weights_in = args.weights
     out_name = args.name
     if model_in is not None:
-        # process keras model to GRAPH
+        # process Keras model to GRAPH
         model_converter = KerasToNCSGraph()
         if weights_in is None:
             model_converter.set_keras_model_file(model_file=model_in)
