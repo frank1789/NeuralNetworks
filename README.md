@@ -71,6 +71,7 @@ To clone the repository can use the following command
 ```shell
 git clone https://github.com/frank1789/NeuralNetworks.git
 ```
+#### alterantive
 
 To run on Host/Guest machine use:
 ```shell
